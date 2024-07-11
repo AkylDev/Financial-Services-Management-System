@@ -1,11 +1,13 @@
 package kz.projects.ams.services;
 
+import kz.projects.ams.dto.TransactionDTO;
+import kz.projects.ams.dto.TransactionRequest;
 import kz.projects.ams.model.Transaction;
 
 public interface TransactionService {
-  Transaction deposit();
+  TransactionDTO deposit(TransactionRequest request);
 
-  Transaction withdraw();
+  TransactionDTO withdraw(TransactionRequest request);
 
   Transaction transfer();
 }
