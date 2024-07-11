@@ -19,6 +19,6 @@ public class Account {
   @JoinColumn(name = "user_id")
   private User user;
 
-  private String accountType;
+  private AccountType accountType;
   private Double balance;
 }

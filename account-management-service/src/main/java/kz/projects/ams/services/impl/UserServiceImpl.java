@@ -62,9 +62,4 @@ public class UserServiceImpl implements UserService {
       throw new UsernameNotFoundException("Invalid credentials");
     }
   }
-
-  @Override
-  public Optional<User> findUserByEmail(String email) {
-    return Optional.empty();
-  }
 }

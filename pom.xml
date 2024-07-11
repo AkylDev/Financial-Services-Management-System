@@ -71,8 +71,6 @@
 	<modules>
 		<module>account-management-service</module>
 		<module>investment-advisory-service</module>
-		<module>account-management-service</module>
-		<module>investment-advisory-service</module>
 	</modules>
 
 	<dependencies>
