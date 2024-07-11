@@ -19,6 +19,8 @@ public class Account {
   @JoinColumn(name = "user_id")
   private User user;
 
+  @Enumerated(EnumType.STRING)
   private AccountType accountType;
+
   private Double balance;
 }

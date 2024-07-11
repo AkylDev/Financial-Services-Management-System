@@ -2,12 +2,16 @@ package kz.projects.ams.services;
 
 import kz.projects.ams.dto.TransactionDTO;
 import kz.projects.ams.dto.TransactionRequest;
-import kz.projects.ams.model.Transaction;
+import kz.projects.ams.dto.TransferRequest;
+
+import java.util.List;
 
 public interface TransactionService {
   TransactionDTO deposit(TransactionRequest request);
 
   TransactionDTO withdraw(TransactionRequest request);
 
-  Transaction transfer();
+  TransactionDTO transfer(TransferRequest request);
+
+  List<TransactionDTO> getTransactions();
 }

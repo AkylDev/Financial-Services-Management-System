@@ -21,7 +21,9 @@ public class Transaction {
   @JoinColumn(name = "account_id")
   private Account account;
 
+  @Enumerated(EnumType.STRING)
   private TransactionType type;
+
   private Double amount;
 
   @Temporal(TemporalType.TIMESTAMP)
