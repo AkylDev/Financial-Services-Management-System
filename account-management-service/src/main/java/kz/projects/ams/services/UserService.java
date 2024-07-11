@@ -1,12 +1,12 @@
 package kz.projects.ams.services;
 
 import kz.projects.ams.dto.LoginRequest;
-import kz.projects.ams.model.User;
+import kz.projects.ams.dto.UserDTO;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
 public interface UserService {
 
-  User register(User user);
+  UserDTO register(UserDTO user);
   UserDetails login(LoginRequest request);
 }

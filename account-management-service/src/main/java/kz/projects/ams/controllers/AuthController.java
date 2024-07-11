@@ -1,7 +1,7 @@
 package kz.projects.ams.controllers;
 
 import kz.projects.ams.dto.LoginRequest;
-import kz.projects.ams.model.User;
+import kz.projects.ams.dto.UserDTO;
 import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ public class AuthController {
   private final UserService userService;
 
   @PostMapping("/register")
-  public ResponseEntity<User> register(@RequestBody User user){
+  public ResponseEntity<UserDTO> register(@RequestBody UserDTO user){
     return new ResponseEntity<>(userService.register(user), HttpStatus.CREATED);
   }
 

@@ -1,6 +1,8 @@
 package kz.projects.ams.services.impl;
 
 import kz.projects.ams.dto.LoginRequest;
+import kz.projects.ams.dto.UserDTO;
+import kz.projects.ams.mapper.UserMapper;
 import kz.projects.ams.model.Permissions;
 import kz.projects.ams.model.User;
 import kz.projects.ams.repositories.PermissionsRepository;
@@ -29,14 +31,19 @@ public class UserServiceImpl implements UserService {
 
   private final MyUserDetailsService userDetailsService;
 
+  private final UserMapper userMapper;
+
   @Override
-  public User register(User registerRequest) {
+  public UserDTO register(UserDTO registerRequest) {
     Optional<User> checkUser = userRepository.findByEmail(registerRequest.getEmail());
     if (checkUser.isPresent()) {
       throw new IllegalArgumentException("User with this email already exists.");
     }
 
-    registerRequest.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+    User newUser = new User();
+    newUser.setName(registerRequest.getName());
+    newUser.setEmail(registerRequest.getEmail());
+    newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
     Permissions defaultPermission = permissionsRepository.findByRole("ROLE_USER");
     if (defaultPermission == null) {
@@ -44,9 +51,9 @@ public class UserServiceImpl implements UserService {
       defaultPermission.setRole("ROLE_USER");
       defaultPermission = permissionsRepository.save(defaultPermission);
     }
-    registerRequest.setPermissionList(Collections.singletonList(defaultPermission));
+    newUser.setPermissionList(Collections.singletonList(defaultPermission));
 
-    return userRepository.save(registerRequest);
+    return userMapper.toDto(userRepository.save(newUser));
   }
 
   @Override
