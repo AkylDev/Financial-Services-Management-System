@@ -69,7 +69,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     Transaction transaction = new Transaction();
     transaction.setAccount(account);
-    transaction.setType(TransactionType.DEPOSIT);
+    transaction.setType(TransactionType.WITHDRAWAL);
     transaction.setAmount(request.getAmount());
     transaction.setDate(new Date());
 
