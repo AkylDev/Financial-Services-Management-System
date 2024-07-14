@@ -16,8 +16,7 @@ public class AdvisorySession {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @JoinColumn(name = "user_id")
-  private Long user_id;
+  private Long userId;
 
   @ManyToOne
   @JoinColumn(name = "advisor_id")

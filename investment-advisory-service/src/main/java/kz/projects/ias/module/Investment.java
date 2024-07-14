@@ -15,8 +15,7 @@ public class Investment {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @JoinColumn(name = "user_id")
-  private Long user_id;
+  private Long userId;
 
   @Enumerated(EnumType.STRING)
   private InvestmentType investmentType;
