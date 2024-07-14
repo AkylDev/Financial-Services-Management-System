@@ -1,5 +1,6 @@
 package kz.projects.ams.services.impl;
 
+import kz.projects.ams.dto.requests.TransactionRequest;
 import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.responses.BalanceCheckResponse;
@@ -8,6 +9,7 @@ import kz.projects.ams.dto.responses.InvestmentResponse;
 import kz.projects.ams.model.Account;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.AccountService;
+import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserInvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
 
   private final AccountService accountService;
 
+  private final TransactionService transactionService;
+
   private final AccountRepository accountRepository;
 
   @Override
@@ -35,11 +39,18 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     Long currentUserId = accountService.getCurrentSessionUser().getId();
     request.setUserId(currentUserId);
 
-    return restTemplate.postForObject(
+    InvestmentResponse response = restTemplate.postForObject(
             "http://localhost:8092/investments",
             request,
             InvestmentResponse.class
     );
+
+    TransactionRequest transactionRequest = new TransactionRequest();
+    transactionRequest.setAccountId(request.getAccountId());
+    transactionRequest.setAmount(request.getAmount());
+    transactionService.withdraw(transactionRequest);
+
+    return response;
   }
 
   @Override
