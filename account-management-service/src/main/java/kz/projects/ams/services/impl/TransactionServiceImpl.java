@@ -1,8 +1,8 @@
 package kz.projects.ams.services.impl;
 
 import kz.projects.ams.dto.TransactionDTO;
-import kz.projects.ams.dto.TransactionRequest;
-import kz.projects.ams.dto.TransferRequest;
+import kz.projects.ams.dto.requests.TransactionRequest;
+import kz.projects.ams.dto.requests.TransferRequest;
 import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.mapper.TransactionMapper;
 import kz.projects.ams.model.Account;

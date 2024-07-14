@@ -1,8 +1,8 @@
 package kz.projects.ams.controllers;
 
 import kz.projects.ams.dto.TransactionDTO;
-import kz.projects.ams.dto.TransactionRequest;
-import kz.projects.ams.dto.TransferRequest;
+import kz.projects.ams.dto.requests.TransactionRequest;
+import kz.projects.ams.dto.requests.TransferRequest;
 import kz.projects.ams.services.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

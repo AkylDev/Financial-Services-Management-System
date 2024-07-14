@@ -1,4 +1,4 @@
-package kz.projects.ams.dto;
+package kz.projects.ams.dto.requests;
 
 import lombok.Getter;
 import lombok.Setter;

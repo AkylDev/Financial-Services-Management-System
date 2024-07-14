@@ -1,6 +1,6 @@
 package kz.projects.ams.controllers;
 
-import kz.projects.ams.dto.LoginRequest;
+import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.dto.UserDTO;
 import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;

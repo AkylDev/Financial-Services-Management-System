@@ -1,6 +1,6 @@
 package kz.projects.ams.services.impl;
 
-import kz.projects.ams.dto.LoginRequest;
+import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.dto.UserDTO;
 import kz.projects.ams.mapper.UserMapper;
 import kz.projects.ams.model.Permissions;
