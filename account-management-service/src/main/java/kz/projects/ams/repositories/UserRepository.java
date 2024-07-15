@@ -1,6 +1,6 @@
 package kz.projects.ams.repositories;
 
-import kz.projects.ams.model.User;
+import kz.projects.ams.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

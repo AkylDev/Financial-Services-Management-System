@@ -1,7 +1,7 @@
 package kz.projects.ias.service.impl;
 
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
-import kz.projects.ias.module.FinancialAdvisor;
+import kz.projects.ias.models.FinancialAdvisor;
 import kz.projects.ias.repositories.FinancialAdvisorRepository;
 import kz.projects.ias.service.FinancialAdvisorService;
 import lombok.RequiredArgsConstructor;

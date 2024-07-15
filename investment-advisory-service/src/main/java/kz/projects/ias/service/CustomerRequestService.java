@@ -1,6 +1,6 @@
 package kz.projects.ias.service;
 
-import kz.projects.ias.module.CustomerServiceRequest;
+import kz.projects.ias.models.CustomerServiceRequest;
 
 import java.util.List;
 

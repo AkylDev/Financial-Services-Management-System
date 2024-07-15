@@ -1,4 +1,4 @@
-package kz.projects.ams.model;
+package kz.projects.ams.models;
 
 public enum TransactionType {
   DEPOSIT,

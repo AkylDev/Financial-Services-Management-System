@@ -1,7 +1,7 @@
 package kz.projects.ams.services;
 
 import kz.projects.ams.dto.AccountDTO;
-import kz.projects.ams.model.User;
+import kz.projects.ams.models.User;
 
 import java.util.List;
 

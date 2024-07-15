@@ -1,6 +1,6 @@
 package kz.projects.ams.repositories;
 
-import kz.projects.ams.model.Permissions;
+import kz.projects.ams.models.Permissions;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

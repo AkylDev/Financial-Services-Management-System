@@ -1,7 +1,7 @@
-package kz.projects.ias.module;
+package kz.projects.ias.models;
 
 import jakarta.persistence.*;
-import kz.projects.ias.module.enums.AdvisorSpecialization;
+import kz.projects.ias.models.enums.AdvisorSpecialization;
 import lombok.Getter;
 import lombok.Setter;
 

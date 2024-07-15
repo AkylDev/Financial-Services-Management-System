@@ -1,6 +1,6 @@
 package kz.projects.ams.services.impl;
 
-import kz.projects.ams.model.User;
+import kz.projects.ams.models.User;
 import kz.projects.ams.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

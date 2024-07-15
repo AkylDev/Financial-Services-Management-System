@@ -1,6 +1,6 @@
 package kz.projects.ams.dto;
 
-import kz.projects.ams.model.AccountType;
+import kz.projects.ams.models.AccountType;
 import lombok.Getter;
 import lombok.Setter;
 

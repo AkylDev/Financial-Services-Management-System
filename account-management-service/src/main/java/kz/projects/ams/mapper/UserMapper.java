@@ -1,7 +1,7 @@
 package kz.projects.ams.mapper;
 
 import kz.projects.ams.dto.UserDTO;
-import kz.projects.ams.model.User;
+import kz.projects.ams.models.User;
 import org.springframework.stereotype.Component;
 
 @Component

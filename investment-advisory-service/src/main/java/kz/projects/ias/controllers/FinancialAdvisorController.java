@@ -1,6 +1,6 @@
-package kz.projects.ias.controller;
+package kz.projects.ias.controllers;
 
-import kz.projects.ias.module.FinancialAdvisor;
+import kz.projects.ias.models.FinancialAdvisor;
 import kz.projects.ias.service.FinancialAdvisorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

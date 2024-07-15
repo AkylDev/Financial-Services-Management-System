@@ -10,7 +10,7 @@ import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.responses.BalanceCheckResponse;
 import kz.projects.ams.dto.requests.InvestmentRequest;
 import kz.projects.ams.dto.responses.InvestmentResponse;
-import kz.projects.ams.model.Account;
+import kz.projects.ams.models.Account;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;

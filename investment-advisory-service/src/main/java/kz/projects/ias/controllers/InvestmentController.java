@@ -1,7 +1,7 @@
-package kz.projects.ias.controller;
+package kz.projects.ias.controllers;
 
 import kz.projects.ias.dto.InvestmentDTO;
-import kz.projects.ias.module.Investment;
+import kz.projects.ias.models.Investment;
 import kz.projects.ias.service.InvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
-package kz.projects.ias.controller;
+package kz.projects.ias.controllers;
 
 import kz.projects.ias.dto.AdvisorySessionDTO;
-import kz.projects.ias.module.AdvisorySession;
+import kz.projects.ias.models.AdvisorySession;
 import kz.projects.ias.service.AdvisorySessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

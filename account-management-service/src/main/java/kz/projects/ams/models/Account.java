@@ -1,31 +1,26 @@
-package kz.projects.ams.model;
+package kz.projects.ams.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "t_transactions")
-public class Transaction {
+@Table(name = "t_accounts")
+public class Account {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ManyToOne
-  @JoinColumn(name = "account_id")
-  private Account account;
+  @JoinColumn(name = "user_id")
+  private User user;
 
   @Enumerated(EnumType.STRING)
-  private TransactionType type;
+  private AccountType accountType;
 
-  private Double amount;
-
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date date;
+  private Double balance;
 }

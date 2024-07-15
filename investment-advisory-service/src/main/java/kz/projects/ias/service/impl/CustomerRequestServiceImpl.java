@@ -1,8 +1,8 @@
 package kz.projects.ias.service.impl;
 
 import kz.projects.ias.exceptions.CustomerServiceRequestNotFoundException;
-import kz.projects.ias.module.CustomerServiceRequest;
-import kz.projects.ias.module.enums.RequestStatus;
+import kz.projects.ias.models.CustomerServiceRequest;
+import kz.projects.ias.models.enums.RequestStatus;
 import kz.projects.ias.repositories.CustomerServiceRequestRepository;
 import kz.projects.ias.service.CustomerRequestService;
 import lombok.RequiredArgsConstructor;

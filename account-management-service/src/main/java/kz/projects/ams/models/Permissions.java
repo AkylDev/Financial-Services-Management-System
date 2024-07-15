@@ -1,4 +1,4 @@
-package kz.projects.ams.model;
+package kz.projects.ams.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;

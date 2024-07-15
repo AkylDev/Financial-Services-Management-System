@@ -1,7 +1,7 @@
 package kz.projects.ias.service;
 
 import kz.projects.ias.dto.AdvisorySessionDTO;
-import kz.projects.ias.module.AdvisorySession;
+import kz.projects.ias.models.AdvisorySession;
 
 import java.util.List;
 

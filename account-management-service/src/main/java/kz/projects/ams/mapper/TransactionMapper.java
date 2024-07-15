@@ -1,7 +1,7 @@
 package kz.projects.ams.mapper;
 
 import kz.projects.ams.dto.TransactionDTO;
-import kz.projects.ams.model.Transaction;
+import kz.projects.ams.models.Transaction;
 import org.springframework.stereotype.Component;
 
 @Component

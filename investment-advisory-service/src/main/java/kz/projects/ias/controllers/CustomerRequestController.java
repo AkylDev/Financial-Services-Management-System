@@ -1,6 +1,6 @@
-package kz.projects.ias.controller;
+package kz.projects.ias.controllers;
 
-import kz.projects.ias.module.CustomerServiceRequest;
+import kz.projects.ias.models.CustomerServiceRequest;
 import kz.projects.ias.service.CustomerRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

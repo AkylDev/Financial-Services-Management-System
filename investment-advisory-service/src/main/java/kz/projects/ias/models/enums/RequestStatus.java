@@ -1,4 +1,4 @@
-package kz.projects.ias.module.enums;
+package kz.projects.ias.models.enums;
 
 public enum RequestStatus {
   PENDING,

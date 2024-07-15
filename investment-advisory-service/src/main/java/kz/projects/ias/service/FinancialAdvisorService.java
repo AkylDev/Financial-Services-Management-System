@@ -1,6 +1,6 @@
 package kz.projects.ias.service;
 
-import kz.projects.ias.module.FinancialAdvisor;
+import kz.projects.ias.models.FinancialAdvisor;
 
 public interface FinancialAdvisorService {
 

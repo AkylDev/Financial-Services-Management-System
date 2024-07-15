@@ -1,7 +1,7 @@
 package kz.projects.ias.service;
 
 import kz.projects.ias.dto.InvestmentDTO;
-import kz.projects.ias.module.Investment;
+import kz.projects.ias.models.Investment;
 
 import java.util.List;
 

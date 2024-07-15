@@ -1,8 +1,8 @@
 package kz.projects.ams.mapper;
 
 import kz.projects.ams.dto.AccountDTO;
-import kz.projects.ams.model.Account;
-import kz.projects.ams.model.User;
+import kz.projects.ams.models.Account;
+import kz.projects.ams.models.User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,18 +20,5 @@ public class AccountMapper {
     accountDTO.setBalance(account.getBalance());
 
     return accountDTO;
-  }
-
-  public Account toModel(AccountDTO accountDTO, User user) {
-    if (accountDTO == null) {
-      return null;
-    }
-
-    Account account = new Account();
-    account.setUser(user);
-    account.setAccountType(accountDTO.getAccountType());
-    account.setBalance(accountDTO.getBalance());
-
-    return account;
   }
 }
