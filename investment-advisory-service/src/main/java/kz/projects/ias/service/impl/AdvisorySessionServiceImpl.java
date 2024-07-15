@@ -1,6 +1,7 @@
 package kz.projects.ias.service.impl;
 
 import kz.projects.ias.dto.AdvisorySessionDTO;
+import kz.projects.ias.exceptions.AdvisorySessionNotFoundException;
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
 import kz.projects.ias.mapper.AdvisorySessionMapper;
 import kz.projects.ias.module.AdvisorySession;
@@ -12,6 +13,7 @@ import kz.projects.ias.service.AdvisorySessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -43,5 +45,33 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
     advisorySession.setStatus(RequestStatus.PENDING);
 
     return advisorySessionMapper.toDto(advisorySessionRepository.save(advisorySession));
+  }
+
+  @Override
+  public List<AdvisorySession> getAdvisorySessions() {
+    return advisorySessionRepository.findAll();
+  }
+
+  @Override
+  public void updateAdvisorySession(AdvisorySessionDTO request) {
+
+    Optional<AdvisorySession> advisorySessionOptional = advisorySessionRepository.findById(request.getId());
+
+    if (advisorySessionOptional.isEmpty()){
+      throw new AdvisorySessionNotFoundException("AdvisorySession with this ID not found");
+    }
+
+    AdvisorySession advisorySession = advisorySessionOptional.get();
+
+    if (!advisorySession.getUserId().equals(request.getUserId())){
+      throw new IllegalArgumentException("You are not allowed");
+    }
+
+    advisorySession.setUserId(request.getUserId());
+    advisorySession.setDate(request.getDate());
+    advisorySession.setTime(request.getTime());
+    advisorySession.setStatus(RequestStatus.RESCHEDULED);
+
+    advisorySessionRepository.save(advisorySession);
   }
 }

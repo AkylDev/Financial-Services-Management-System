@@ -14,4 +14,6 @@ public interface UserInvestmentAdvisoryService {
 
   AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request);
 
+  void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request);
+
 }

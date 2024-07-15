@@ -9,6 +9,8 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class AdvisorySessionDTO {
+  private Long id;
+
   private Long userId;
 
   private Long advisoryId;

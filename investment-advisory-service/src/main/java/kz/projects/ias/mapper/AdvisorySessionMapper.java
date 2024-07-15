@@ -13,6 +13,7 @@ public class AdvisorySessionMapper {
     }
 
     AdvisorySessionDTO advisorySessionDTO = new AdvisorySessionDTO();
+    advisorySessionDTO.setId(advisorySession.getId());
     advisorySessionDTO.setAdvisoryId(advisorySession.getFinancialAdvisor().getId());
     advisorySessionDTO.setUserId(advisorySession.getUserId());
     advisorySessionDTO.setDate(advisorySession.getDate());

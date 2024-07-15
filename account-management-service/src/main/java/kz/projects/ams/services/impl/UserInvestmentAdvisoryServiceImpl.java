@@ -100,4 +100,21 @@ public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisory
     }
   }
 
+  @Override
+  public void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request) {
+    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    request.setUserId(currentUserId);
+    request.setId(id);
+
+    try {
+      restTemplate.put(
+              "http://localhost:8092/advisory-sessions",
+              request,
+              AdvisorySessionDTO.class
+      );
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to reschedule advisory session", e);
+    }
+  }
+
 }

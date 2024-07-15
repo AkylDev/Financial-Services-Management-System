@@ -9,9 +9,7 @@ import kz.projects.ams.services.UserInvestmentAdvisoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,5 +30,12 @@ public class InvestmentAdvisoryServiceController {
   @PostMapping("/book-advisory")
   public ResponseEntity<AdvisorySessionDTO> orderAdvisorySession(@RequestBody AdvisorySessionDTO request){
     return new ResponseEntity<>(investmentAdvisoryService.orderAdvisorySession(request), HttpStatus.CREATED);
+  }
+
+  @PutMapping("/reschedule-advisory/{id}")
+  public void rescheduleAdvisorySession(@PathVariable("id") Long id,
+                                        @RequestBody AdvisorySessionDTO request){
+    investmentAdvisoryService.rescheduleAdvisorySession(id, request);
+//    return new ResponseEntity<Void>(investmentAdvisoryService.rescheduleAdvisorySession(id, request), HttpStatus.OK);
   }
 }
