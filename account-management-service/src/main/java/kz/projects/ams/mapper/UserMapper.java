@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
-  public UserDTO toDto(User user){
+  public UserDTO toDto(User user) {
     if (user == null){
       return null;
     }

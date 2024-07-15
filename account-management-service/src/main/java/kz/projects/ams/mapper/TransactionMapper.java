@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TransactionMapper {
 
-  public TransactionDTO toDto(Transaction transaction){
+  public TransactionDTO toDto(Transaction transaction) {
     if (transaction == null){
       return null;
     }
