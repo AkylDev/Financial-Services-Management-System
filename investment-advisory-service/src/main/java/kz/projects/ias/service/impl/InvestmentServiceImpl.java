@@ -3,6 +3,7 @@ package kz.projects.ias.service.impl;
 import kz.projects.ias.dto.BalanceCheckRequest;
 import kz.projects.ias.dto.BalanceCheckResponse;
 import kz.projects.ias.dto.InvestmentDTO;
+import kz.projects.ias.exceptions.CheckBalanceException;
 import kz.projects.ias.exceptions.InvestmentNotFoundException;
 import kz.projects.ias.exceptions.NotSufficientFundsException;
 import kz.projects.ias.module.Investment;
@@ -10,6 +11,7 @@ import kz.projects.ias.repositories.InvestmentRepository;
 import kz.projects.ias.service.InvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
@@ -31,24 +33,27 @@ public class InvestmentServiceImpl implements InvestmentService {
     request.setAccountId(investmentDTO.getAccountId());
     request.setAmount(investmentDTO.getAmount());
 
-    BalanceCheckResponse response = restTemplate.postForObject(
-            "http://localhost:8091/check-balance",
-            request,
-            BalanceCheckResponse.class
-    );
+    try {
+      BalanceCheckResponse response = restTemplate.postForObject(
+              "http://localhost:8091/check-balance",
+              request,
+              BalanceCheckResponse.class
+      );
 
-    assert response != null;
-    if (!response.isSufficientFunds()){
-      throw new NotSufficientFundsException("Insufficient funds");
+      if (response == null || !response.isSufficientFunds()) {
+        throw new NotSufficientFundsException("Insufficient funds");
+      }
+
+      Investment investment = new Investment();
+      investment.setAmount(investmentDTO.getAmount());
+      investment.setInvestmentType(investmentDTO.getInvestmentType());
+      investment.setUserId(investmentDTO.getUserId());
+      investment.setDate(new Date());
+
+      return investmentRepository.save(investment);
+    } catch (RestClientException e) {
+      throw new CheckBalanceException("Failed to check balance or create investment", e);
     }
-    Investment investment = new Investment();
-
-    investment.setAmount(investmentDTO.getAmount());
-    investment.setInvestmentType(investmentDTO.getInvestmentType());
-    investment.setUserId(investmentDTO.getUserId());
-    investment.setDate(new Date());
-
-    return investmentRepository.save(investment);
   }
 
   @Override

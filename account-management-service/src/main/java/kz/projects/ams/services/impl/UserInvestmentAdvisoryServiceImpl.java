@@ -1,6 +1,10 @@
 package kz.projects.ams.services.impl;
 
+import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.dto.requests.TransactionRequest;
+import kz.projects.ams.exceptions.AdvisorySessionOrderException;
+import kz.projects.ams.exceptions.InvestmentOperationException;
+import kz.projects.ams.exceptions.UnauthorizedException;
 import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.responses.BalanceCheckResponse;
@@ -10,16 +14,17 @@ import kz.projects.ams.model.Account;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;
-import kz.projects.ams.services.UserInvestmentService;
+import kz.projects.ams.services.UserInvestmentAdvisoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserInvestmentServiceImpl implements UserInvestmentService {
+public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisoryService {
 
   private final RestTemplate restTemplate;
 
@@ -39,18 +44,27 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     Long currentUserId = accountService.getCurrentSessionUser().getId();
     request.setUserId(currentUserId);
 
-    InvestmentResponse response = restTemplate.postForObject(
-            "http://localhost:8092/investments",
-            request,
-            InvestmentResponse.class
-    );
+    Account account = accountOptional.get();
+    if (!account.getUser().getId().equals(currentUserId)){
+      throw new UnauthorizedException("You are not authorized to change this appointment");
+    }
 
-    TransactionRequest transactionRequest = new TransactionRequest();
-    transactionRequest.setAccountId(request.getAccountId());
-    transactionRequest.setAmount(request.getAmount());
-    transactionService.withdraw(transactionRequest);
+    try {
+      InvestmentResponse response = restTemplate.postForObject(
+              "http://localhost:8092/investments",
+              request,
+              InvestmentResponse.class
+      );
 
-    return response;
+      TransactionRequest transactionRequest = new TransactionRequest();
+      transactionRequest.setAccountId(request.getAccountId());
+      transactionRequest.setAmount(request.getAmount());
+      transactionService.withdraw(transactionRequest);
+
+      return response;
+    } catch (RestClientException e) {
+      throw new InvestmentOperationException("Failed to process investment", e);
+    }
   }
 
   @Override
@@ -67,6 +81,23 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     balanceCheckResponse.setSufficientFunds(account.getBalance() >= request.getAmount());
 
     return balanceCheckResponse;
+  }
+
+  @Override
+  public AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request) {
+
+    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    request.setUserId(currentUserId);
+
+    try {
+      return restTemplate.postForObject(
+              "http://localhost:8092/advisory-sessions",
+              request,
+              AdvisorySessionDTO.class
+      );
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to order advisory session", e);
+    }
   }
 
 }
