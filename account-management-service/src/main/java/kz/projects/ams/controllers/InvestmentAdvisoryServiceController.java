@@ -1,9 +1,11 @@
 package kz.projects.ams.controllers;
 
+import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.responses.BalanceCheckResponse;
 import kz.projects.ams.dto.requests.InvestmentRequest;
 import kz.projects.ams.dto.responses.InvestmentResponse;
+import kz.projects.ams.services.UserAdvisorySessionService;
 import kz.projects.ams.services.UserInvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,9 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class UserInvestmentController {
+public class InvestmentAdvisoryServiceController {
 
   private final UserInvestmentService userInvestmentService;
+
+  private final UserAdvisorySessionService advisorySessionService;
 
   @PostMapping("/to-invest")
   public ResponseEntity<InvestmentResponse> toInvest(@RequestBody InvestmentRequest request){
@@ -26,5 +30,10 @@ public class UserInvestmentController {
   @PostMapping("/check-balance")
   public ResponseEntity<BalanceCheckResponse> checkBalance(@RequestBody BalanceCheckRequest request) {
     return new ResponseEntity<>(userInvestmentService.checkBalance(request), HttpStatus.OK);
+  }
+
+  @PostMapping("/book-advisory")
+  public ResponseEntity<AdvisorySessionDTO> orderAdvisorySession(@RequestBody AdvisorySessionDTO request){
+    return new ResponseEntity<>(advisorySessionService.orderAdvisorySession(request), HttpStatus.CREATED);
   }
 }

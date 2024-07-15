@@ -1,6 +1,7 @@
 package kz.projects.ias.module;
 
 import jakarta.persistence.*;
+import kz.projects.ias.module.enums.RequestStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,6 +27,7 @@ public class AdvisorySession {
 
   private LocalTime time;
 
-  private String status;
+  @Enumerated(EnumType.STRING)
+  private RequestStatus status;
 
 }

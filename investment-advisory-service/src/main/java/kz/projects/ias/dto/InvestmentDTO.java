@@ -1,6 +1,6 @@
 package kz.projects.ias.dto;
 
-import kz.projects.ias.module.InvestmentType;
+import kz.projects.ias.module.enums.InvestmentType;
 import lombok.Getter;
 import lombok.Setter;
 

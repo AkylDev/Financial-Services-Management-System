@@ -27,8 +27,7 @@ public class SecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                     authorizationManagerRequestMatcherRegistry.requestMatchers(HttpMethod.DELETE).permitAll()
-                            .requestMatchers("/investments/**").permitAll()
-                            .anyRequest().authenticated())
+                            .anyRequest().permitAll())
             .httpBasic(Customizer.withDefaults())
             .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
                     .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
