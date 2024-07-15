@@ -18,7 +18,7 @@ public class InvestmentAdvisoryServiceController {
   private final UserInvestmentAdvisoryService investmentAdvisoryService;
 
   @PostMapping("/to-invest")
-  public ResponseEntity<InvestmentResponse> toInvest(@RequestBody InvestmentRequest request){
+  public ResponseEntity<InvestmentResponse> toInvest(@RequestBody InvestmentRequest request) {
     return new ResponseEntity<>(investmentAdvisoryService.toInvest(request), HttpStatus.CREATED);
   }
 
@@ -28,13 +28,13 @@ public class InvestmentAdvisoryServiceController {
   }
 
   @PostMapping("/book-advisory")
-  public ResponseEntity<AdvisorySessionDTO> orderAdvisorySession(@RequestBody AdvisorySessionDTO request){
+  public ResponseEntity<AdvisorySessionDTO> orderAdvisorySession(@RequestBody AdvisorySessionDTO request) {
     return new ResponseEntity<>(investmentAdvisoryService.orderAdvisorySession(request), HttpStatus.CREATED);
   }
 
   @PutMapping("/reschedule-advisory/{id}")
   public ResponseEntity<Void> rescheduleAdvisorySession(@PathVariable("id") Long id,
-                                        @RequestBody AdvisorySessionDTO request){
+                                        @RequestBody AdvisorySessionDTO request) {
     investmentAdvisoryService.rescheduleAdvisorySession(id, request);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }

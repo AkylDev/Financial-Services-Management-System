@@ -17,23 +17,23 @@ public class AccountController {
   private final AccountService accountService;
 
   @PostMapping
-  public ResponseEntity<AccountDTO> createAccount(@RequestBody AccountDTO account){
+  public ResponseEntity<AccountDTO> createAccount(@RequestBody AccountDTO account) {
     return new ResponseEntity<>(accountService.createAccount(account), HttpStatus.CREATED);
   }
 
   @GetMapping
-  public ResponseEntity<List<AccountDTO>> getUserAccounts(){
+  public ResponseEntity<List<AccountDTO>> getUserAccounts() {
     return new ResponseEntity<>(accountService.findAccountsByUserId(), HttpStatus.OK);
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<AccountDTO> updateAccount(@PathVariable(name = "id") Long id,
-                                               @RequestBody AccountDTO request){
+                                               @RequestBody AccountDTO request) {
     return new ResponseEntity<>(accountService.updateAccount(id, request), HttpStatus.OK);
   }
 
   @DeleteMapping("/{id}")
-  public void deleteAccount(@PathVariable(name = "id") Long id){
+  public void deleteAccount(@PathVariable(name = "id") Long id) {
     accountService.deleteAccount(id);
   }
 

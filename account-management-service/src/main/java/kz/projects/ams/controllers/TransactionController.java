@@ -34,7 +34,7 @@ public class TransactionController {
   }
 
   @GetMapping
-  public ResponseEntity<List<TransactionDTO>> getTransactions(){
+  public ResponseEntity<List<TransactionDTO>> getTransactions() {
     return new ResponseEntity<>(transactionService.getTransactions(), HttpStatus.OK);
   }
 }
