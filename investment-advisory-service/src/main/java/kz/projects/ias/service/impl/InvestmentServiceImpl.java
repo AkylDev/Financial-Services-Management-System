@@ -6,8 +6,12 @@ import kz.projects.ias.dto.InvestmentDTO;
 import kz.projects.ias.exceptions.CheckBalanceException;
 import kz.projects.ias.exceptions.InvestmentNotFoundException;
 import kz.projects.ias.exceptions.NotSufficientFundsException;
+import kz.projects.ias.module.CustomerServiceRequest;
 import kz.projects.ias.module.Investment;
+import kz.projects.ias.module.enums.RequestStatus;
+import kz.projects.ias.module.enums.RequestType;
 import kz.projects.ias.repositories.InvestmentRepository;
+import kz.projects.ias.service.CustomerRequestService;
 import kz.projects.ias.service.InvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,8 @@ public class InvestmentServiceImpl implements InvestmentService {
   private final InvestmentRepository investmentRepository;
 
   private final RestTemplate restTemplate;
+
+  private final CustomerRequestService customerRequestService;
 
   @Override
   public Investment createInvestment(InvestmentDTO investmentDTO) {
@@ -49,6 +55,13 @@ public class InvestmentServiceImpl implements InvestmentService {
       investment.setInvestmentType(investmentDTO.getInvestmentType());
       investment.setUserId(investmentDTO.getUserId());
       investment.setDate(new Date());
+
+      CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
+      customerServiceRequest.setUserId(investment.getUserId());
+      customerServiceRequest.setRequestType(RequestType.INVESTMENT);
+      customerServiceRequest.setDescription("Customer invested " + investmentDTO.getAmount() + "$ to " + investment.getInvestmentType());
+      customerServiceRequest.setStatus(RequestStatus.PENDING);
+      customerRequestService.createRequest(customerServiceRequest);
 
       return investmentRepository.save(investment);
     } catch (RestClientException e) {

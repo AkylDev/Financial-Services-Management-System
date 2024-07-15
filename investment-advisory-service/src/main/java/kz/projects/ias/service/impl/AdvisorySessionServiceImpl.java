@@ -5,11 +5,14 @@ import kz.projects.ias.exceptions.AdvisorySessionNotFoundException;
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
 import kz.projects.ias.mapper.AdvisorySessionMapper;
 import kz.projects.ias.module.AdvisorySession;
+import kz.projects.ias.module.CustomerServiceRequest;
 import kz.projects.ias.module.FinancialAdvisor;
 import kz.projects.ias.module.enums.RequestStatus;
+import kz.projects.ias.module.enums.RequestType;
 import kz.projects.ias.repositories.AdvisorySessionRepository;
 import kz.projects.ias.repositories.FinancialAdvisorRepository;
 import kz.projects.ias.service.AdvisorySessionService;
+import kz.projects.ias.service.CustomerRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +28,8 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   private final AdvisorySessionMapper advisorySessionMapper;
 
   private final AdvisorySessionRepository advisorySessionRepository;
+
+  private final CustomerRequestService customerRequestService;
 
   @Override
   public AdvisorySessionDTO createAdvisorySession(AdvisorySessionDTO request) {
@@ -43,6 +48,15 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
     advisorySession.setDate(request.getDate());
     advisorySession.setTime(request.getTime());
     advisorySession.setStatus(RequestStatus.PENDING);
+
+    CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
+    customerServiceRequest.setUserId(request.getUserId());
+    customerServiceRequest.setRequestType(RequestType.INVESTMENT);
+    customerServiceRequest.setDescription("Customer set up advisory session with " +
+            advisorySession.getFinancialAdvisor().getName() + " on " + request.getDate() +
+            " at " + request.getTime());
+    customerServiceRequest.setStatus(RequestStatus.PENDING);
+    customerRequestService.createRequest(customerServiceRequest);
 
     return advisorySessionMapper.toDto(advisorySessionRepository.save(advisorySession));
   }

@@ -15,6 +15,8 @@ public class CustomerServiceRequest {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  private Long userId;
+
   @Enumerated(EnumType.STRING)
   private RequestType requestType;
 
