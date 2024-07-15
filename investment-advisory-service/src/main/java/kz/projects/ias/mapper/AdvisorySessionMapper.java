@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdvisorySessionMapper {
 
-  public AdvisorySessionDTO toDto(AdvisorySession advisorySession){
+  public AdvisorySessionDTO toDto(AdvisorySession advisorySession) {
     if (advisorySession == null) {
       return null;
     }

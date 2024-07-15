@@ -18,17 +18,17 @@ public class AdvisorySessionController {
   private final AdvisorySessionService advisorySessionService;
 
   @PostMapping
-  public ResponseEntity<AdvisorySessionDTO> createAdvisorySession(@RequestBody AdvisorySessionDTO request){
+  public ResponseEntity<AdvisorySessionDTO> createAdvisorySession(@RequestBody AdvisorySessionDTO request) {
     return new ResponseEntity<>(advisorySessionService.createAdvisorySession(request), HttpStatus.CREATED);
   }
 
   @GetMapping
-  public ResponseEntity<List<AdvisorySession>> getAdvisorySessions(){
+  public ResponseEntity<List<AdvisorySession>> getAdvisorySessions() {
     return new ResponseEntity<>(advisorySessionService.getAdvisorySessions(), HttpStatus.OK);
   }
 
   @PutMapping
-  public void updateAdvisorySession(@RequestBody AdvisorySessionDTO request){
+  public void updateAdvisorySession(@RequestBody AdvisorySessionDTO request) {
     advisorySessionService.updateAdvisorySession(request);
   }
 

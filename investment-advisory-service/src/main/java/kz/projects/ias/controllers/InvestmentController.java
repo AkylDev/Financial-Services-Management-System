@@ -24,18 +24,18 @@ public class InvestmentController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Investment>> getAllInvestments(){
+  public ResponseEntity<List<Investment>> getAllInvestments() {
     return new ResponseEntity<>(investmentService.getAllInvestments(), HttpStatus.OK);
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<Investment> updateInvestment(@PathVariable("id") Long id,
-                                                     @RequestBody Investment investment){
+                                                     @RequestBody Investment investment) {
     return new ResponseEntity<>(investmentService.updateInvestment(id, investment), HttpStatus.OK);
   }
 
   @DeleteMapping("/{id}")
-  public void deleteInvestment(@PathVariable("id") Long id){
+  public void deleteInvestment(@PathVariable("id") Long id) {
     investmentService.deleteInvestment(id);
   }
 

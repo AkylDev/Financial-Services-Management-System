@@ -28,7 +28,7 @@ public class CustomerRequestController {
 
   @PutMapping("/{id}")
   public ResponseEntity<CustomerServiceRequest> updateCustomerRequest(@PathVariable("id") Long id,
-                                                                      @RequestBody CustomerServiceRequest request){
+                                                                      @RequestBody CustomerServiceRequest request) {
     return new ResponseEntity<>(customerRequestService.updateRequests(id, request), HttpStatus.OK);
   }
 

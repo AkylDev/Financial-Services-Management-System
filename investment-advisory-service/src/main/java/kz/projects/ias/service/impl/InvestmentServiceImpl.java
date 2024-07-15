@@ -59,7 +59,8 @@ public class InvestmentServiceImpl implements InvestmentService {
       CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
       customerServiceRequest.setUserId(investment.getUserId());
       customerServiceRequest.setRequestType(RequestType.INVESTMENT);
-      customerServiceRequest.setDescription("Customer invested " + investmentDTO.getAmount() + "$ to " + investment.getInvestmentType());
+      customerServiceRequest.setDescription("Customer invested " + investmentDTO.getAmount()
+              + "$ to " + investment.getInvestmentType());
       customerServiceRequest.setStatus(RequestStatus.PENDING);
       customerRequestService.createRequest(customerServiceRequest);
 
