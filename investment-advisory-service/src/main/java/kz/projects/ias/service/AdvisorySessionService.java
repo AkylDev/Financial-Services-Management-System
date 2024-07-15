@@ -12,4 +12,6 @@ public interface AdvisorySessionService {
 
   void updateAdvisorySession(AdvisorySessionDTO advisorySessionDTO);
 
+  void deleteAdvisorySession(Long id, Long userId);
+
 }

@@ -30,7 +30,13 @@ public class AdvisorySessionController {
   @PutMapping
   public void updateAdvisorySession(@RequestBody AdvisorySessionDTO request){
     advisorySessionService.updateAdvisorySession(request);
-//    return new ResponseEntity<>(advisorySessionService.updateAdvisorySession(request), HttpStatus.OK);
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteAdvisorySession(@PathVariable("id") Long id,
+                                                    @RequestParam("userId") Long userId) {
+    advisorySessionService.deleteAdvisorySession(id, userId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
 }

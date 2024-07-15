@@ -33,9 +33,15 @@ public class InvestmentAdvisoryServiceController {
   }
 
   @PutMapping("/reschedule-advisory/{id}")
-  public void rescheduleAdvisorySession(@PathVariable("id") Long id,
+  public ResponseEntity<Void> rescheduleAdvisorySession(@PathVariable("id") Long id,
                                         @RequestBody AdvisorySessionDTO request){
     investmentAdvisoryService.rescheduleAdvisorySession(id, request);
-//    return new ResponseEntity<Void>(investmentAdvisoryService.rescheduleAdvisorySession(id, request), HttpStatus.OK);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @DeleteMapping("/delete-advisory/{id}")
+  public ResponseEntity<Void> deleteAdvisorySession(@PathVariable("id") Long id) {
+    investmentAdvisoryService.deleteAdvisorySession(id);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 }

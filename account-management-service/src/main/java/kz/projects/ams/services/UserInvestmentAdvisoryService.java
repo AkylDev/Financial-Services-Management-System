@@ -16,4 +16,6 @@ public interface UserInvestmentAdvisoryService {
 
   void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request);
 
+  void deleteAdvisorySession(Long id);
+
 }

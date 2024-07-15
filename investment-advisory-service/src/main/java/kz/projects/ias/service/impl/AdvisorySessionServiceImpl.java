@@ -74,4 +74,21 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
 
     advisorySessionRepository.save(advisorySession);
   }
+
+  @Override
+  public void deleteAdvisorySession(Long id, Long userId) {
+    Optional<AdvisorySession> advisorySessionOptional = advisorySessionRepository.findById(id);
+
+    if (advisorySessionOptional.isEmpty()) {
+      throw new AdvisorySessionNotFoundException("Advisory session with this ID not found");
+    }
+
+    AdvisorySession advisorySession = advisorySessionOptional.get();
+
+    if (!advisorySession.getUserId().equals(userId)) {
+      throw new IllegalArgumentException("You are not allowed");
+    }
+
+    advisorySessionRepository.deleteById(id);
+  }
 }

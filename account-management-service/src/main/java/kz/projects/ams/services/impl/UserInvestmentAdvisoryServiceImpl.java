@@ -117,4 +117,17 @@ public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisory
     }
   }
 
+  @Override
+  public void deleteAdvisorySession(Long id) {
+    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    try {
+      restTemplate.delete(
+              "http://localhost:8092/advisory-sessions/{id}?userId={userId}",
+              id, currentUserId
+      );
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to delete advisory session", e);
+    }
+  }
+
 }
