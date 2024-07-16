@@ -14,7 +14,7 @@ import kz.projects.ams.models.Account;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;
-import kz.projects.ams.services.UserInvestmentAdvisoryService;
+import kz.projects.ams.services.UserInvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -28,7 +28,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisoryService {
+public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentService {
 
   private final RestTemplate restTemplate;
 
@@ -134,71 +134,6 @@ public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisory
     balanceCheckResponse.setSufficientFunds(account.getBalance() >= request.getAmount());
 
     return balanceCheckResponse;
-  }
-
-  @Override
-  public AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request) {
-
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
-    request.setUserId(currentUserId);
-
-    try {
-      return restTemplate.postForObject(
-              "http://localhost:8092/advisory-sessions",
-              request,
-              AdvisorySessionDTO.class
-      );
-    } catch (RestClientException e) {
-      throw new AdvisorySessionOrderException("Failed to order advisory session", e);
-    }
-  }
-
-  @Override
-  public List<AdvisorySessionDTO> getAdvisorySessionsPlanned() {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
-
-    try {
-      ResponseEntity<List<AdvisorySessionDTO>> response = restTemplate.exchange(
-              "http://localhost:8092/advisory-sessions?userId=" + currentUserId,
-              HttpMethod.GET,
-              null,
-              new ParameterizedTypeReference<>() {}
-      );
-      return response.getBody();
-    } catch (RestClientException e) {
-      throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
-    }
-  }
-
-
-  @Override
-  public void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request) {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
-    request.setUserId(currentUserId);
-    request.setId(id);
-
-    try {
-      restTemplate.put(
-              "http://localhost:8092/advisory-sessions",
-              request,
-              AdvisorySessionDTO.class
-      );
-    } catch (RestClientException e) {
-      throw new AdvisorySessionOrderException("Failed to reschedule advisory session", e);
-    }
-  }
-
-  @Override
-  public void deleteAdvisorySession(Long id) {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
-    try {
-      restTemplate.delete(
-              "http://localhost:8092/advisory-sessions/{id}?userId={userId}",
-              id, currentUserId
-      );
-    } catch (RestClientException e) {
-      throw new AdvisorySessionOrderException("Failed to delete advisory session", e);
-    }
   }
 
 }
