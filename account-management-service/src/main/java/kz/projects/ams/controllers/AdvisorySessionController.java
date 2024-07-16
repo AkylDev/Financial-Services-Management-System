@@ -35,7 +35,7 @@ public class AdvisorySessionController {
 
   @PutMapping("/{id}")
   public ResponseEntity<Void> rescheduleAdvisorySession(@PathVariable("id") Long id,
-                                        @RequestBody AdvisorySessionDTO request) {
+                                                        @RequestBody AdvisorySessionDTO request) {
     advisorySessionService.rescheduleAdvisorySession(id, request);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }

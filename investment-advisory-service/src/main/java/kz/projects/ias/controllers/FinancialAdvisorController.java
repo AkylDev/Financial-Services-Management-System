@@ -23,7 +23,7 @@ public class FinancialAdvisorController {
   }
 
   @GetMapping
-  public ResponseEntity<List<FinancialAdvisor>> getAllAdvisor(){
+  public ResponseEntity<List<FinancialAdvisor>> getAllAdvisor() {
     return new ResponseEntity<>(financialAdvisorService.getAllAdvisors(), HttpStatus.OK);
   }
 

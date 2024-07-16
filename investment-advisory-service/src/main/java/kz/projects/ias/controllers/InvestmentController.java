@@ -37,7 +37,7 @@ public class InvestmentController {
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteInvestment(@PathVariable("id") Long id,
-                               @RequestParam("userId") Long userId) {
+                                               @RequestParam("userId") Long userId) {
     investmentService.deleteInvestment(id, userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }

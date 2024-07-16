@@ -80,7 +80,7 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   public void updateAdvisorySession(AdvisorySessionDTO request) {
 
     AdvisorySession session = advisorySessionRepository.findById(request.getId())
-                    .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
+            .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
 
     if (!session.getUserId().equals(request.getUserId())){
       throw new IllegalArgumentException("You are not allowed");
