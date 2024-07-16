@@ -72,6 +72,24 @@ public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisory
   }
 
   @Override
+  public List<InvestmentResponse> getAllUsersInvestments() {
+    Long currentUserId = accountService.getCurrentSessionUser().getId();
+
+    try {
+      ResponseEntity<List<InvestmentResponse>> response = restTemplate.exchange(
+              "http://localhost:8092/investments?userId=" + currentUserId,
+              HttpMethod.GET,
+              null,
+              new ParameterizedTypeReference<>() {}
+      );
+      return response.getBody();
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
+    }
+  }
+
+
+  @Override
   public BalanceCheckResponse checkBalance(BalanceCheckRequest request) {
     Optional<Account> accountOptional = accountRepository.findById(request.getAccountId());
     if (accountOptional.isEmpty()){

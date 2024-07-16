@@ -24,6 +24,12 @@ public class InvestmentAdvisoryServiceController {
     return new ResponseEntity<>(investmentAdvisoryService.toInvest(request), HttpStatus.CREATED);
   }
 
+  @GetMapping("/view-investments")
+  public ResponseEntity<List<InvestmentResponse>> getAllUsersInvestments() {
+    List<InvestmentResponse> investmentResponses = investmentAdvisoryService.getAllUsersInvestments();
+    return new ResponseEntity<>(investmentResponses, HttpStatus.CREATED);
+  }
+
   @PostMapping("/check-balance")
   public ResponseEntity<BalanceCheckResponse> checkBalance(@RequestBody BalanceCheckRequest request) {
     return new ResponseEntity<>(investmentAdvisoryService.checkBalance(request), HttpStatus.OK);

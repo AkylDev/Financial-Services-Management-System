@@ -6,11 +6,11 @@ import kz.projects.ias.models.Investment;
 import java.util.List;
 
 public interface InvestmentService {
-  Investment createInvestment(InvestmentDTO investment);
+  InvestmentDTO createInvestment(InvestmentDTO investment);
 
-  List<Investment> getAllInvestments();
+  List<Investment> getAllInvestments(Long userId);
 
-  Investment updateInvestment(Long id, Investment investment);
+  Investment updateInvestment(Long id, InvestmentDTO investment);
 
   void deleteInvestment(Long id);
 }

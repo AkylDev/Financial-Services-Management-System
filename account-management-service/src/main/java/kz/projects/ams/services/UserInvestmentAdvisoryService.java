@@ -12,6 +12,8 @@ public interface UserInvestmentAdvisoryService {
 
   InvestmentResponse toInvest(InvestmentRequest request);
 
+  List<InvestmentResponse> getAllUsersInvestments();
+
   BalanceCheckResponse checkBalance(BalanceCheckRequest request);
 
   AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request);

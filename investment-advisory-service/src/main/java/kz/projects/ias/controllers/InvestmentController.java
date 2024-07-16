@@ -18,20 +18,22 @@ public class InvestmentController {
   private final InvestmentService investmentService;
 
   @PostMapping
-  public ResponseEntity<Investment> createInvestment(@RequestBody InvestmentDTO investmentDTO) {
-    Investment savedInvestment = investmentService.createInvestment(investmentDTO);
+  public ResponseEntity<InvestmentDTO> createInvestment(@RequestBody InvestmentDTO investmentDTO) {
+    InvestmentDTO savedInvestment = investmentService.createInvestment(investmentDTO);
     return new ResponseEntity<>(savedInvestment, HttpStatus.CREATED);
   }
 
   @GetMapping
-  public ResponseEntity<List<Investment>> getAllInvestments() {
-    return new ResponseEntity<>(investmentService.getAllInvestments(), HttpStatus.OK);
+  public ResponseEntity<List<Investment>> getAllInvestments(@RequestParam("userId") Long userId) {
+    List<Investment> investmentList = investmentService.getAllInvestments(userId);
+    return new ResponseEntity<>(investmentList, HttpStatus.OK);
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<Investment> updateInvestment(@PathVariable("id") Long id,
-                                                     @RequestBody Investment investment) {
-    return new ResponseEntity<>(investmentService.updateInvestment(id, investment), HttpStatus.OK);
+                                                     @RequestBody InvestmentDTO investment) {
+    Investment updatedInvestment = investmentService.updateInvestment(id, investment);
+    return new ResponseEntity<>(updatedInvestment, HttpStatus.OK);
   }
 
   @DeleteMapping("/{id}")

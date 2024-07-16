@@ -6,6 +6,7 @@ import kz.projects.ias.dto.InvestmentDTO;
 import kz.projects.ias.exceptions.CheckBalanceException;
 import kz.projects.ias.exceptions.InvestmentNotFoundException;
 import kz.projects.ias.exceptions.NotSufficientFundsException;
+import kz.projects.ias.mapper.InvestmentsMapper;
 import kz.projects.ias.models.CustomerServiceRequest;
 import kz.projects.ias.models.Investment;
 import kz.projects.ias.models.enums.RequestStatus;
@@ -33,16 +34,16 @@ public class InvestmentServiceImpl implements InvestmentService {
   private final CustomerRequestService customerRequestService;
 
   @Override
-  public Investment createInvestment(InvestmentDTO investmentDTO) {
+  public InvestmentDTO createInvestment(InvestmentDTO request) {
 
-    BalanceCheckRequest request = new BalanceCheckRequest();
-    request.setAccountId(investmentDTO.getAccountId());
-    request.setAmount(investmentDTO.getAmount());
+    BalanceCheckRequest balanceCheckRequest = new BalanceCheckRequest();
+    balanceCheckRequest.setAccountId(request.getAccountId());
+    balanceCheckRequest.setAmount(request.getAmount());
 
     try {
       BalanceCheckResponse response = restTemplate.postForObject(
               "http://localhost:8091/check-balance",
-              request,
+              balanceCheckRequest,
               BalanceCheckResponse.class
       );
 
@@ -50,44 +51,41 @@ public class InvestmentServiceImpl implements InvestmentService {
         throw new NotSufficientFundsException("Insufficient funds");
       }
 
-      Investment investment = new Investment();
-      investment.setAmount(investmentDTO.getAmount());
-      investment.setInvestmentType(investmentDTO.getInvestmentType());
-      investment.setUserId(investmentDTO.getUserId());
+      Investment investment = InvestmentsMapper.toEntity(request);
       investment.setDate(new Date());
 
       CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
       customerServiceRequest.setUserId(investment.getUserId());
       customerServiceRequest.setRequestType(RequestType.INVESTMENT);
-      customerServiceRequest.setDescription("Customer invested " + investmentDTO.getAmount()
+      customerServiceRequest.setDescription("Customer invested " + request.getAmount()
               + "$ to " + investment.getInvestmentType());
       customerServiceRequest.setStatus(RequestStatus.PENDING);
       customerRequestService.createRequest(customerServiceRequest);
 
-      return investmentRepository.save(investment);
+      Investment savedInvestment = investmentRepository.save(investment);
+
+      return InvestmentsMapper.toDto(savedInvestment);
     } catch (RestClientException e) {
       throw new CheckBalanceException("Failed to check balance or create investment", e);
     }
   }
 
   @Override
-  public List<Investment> getAllInvestments() {
-    return investmentRepository.findAll();
+  public List<Investment> getAllInvestments(Long userId) {
+    return investmentRepository.findAllByUserId(userId);
   }
 
   @Override
-  public Investment updateInvestment(Long id, Investment investment) {
-    Optional<Investment> investmentOptional = investmentRepository.findById(id);
+  public Investment updateInvestment(Long id, InvestmentDTO request) {
+    Investment investment = investmentRepository.findById(id)
+            .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
 
-    if (investmentOptional.isEmpty()){
-      throw new InvestmentNotFoundException("Investment not found");
-    }
+    investment.setInvestmentType(request.getInvestmentType());
+    investment.setDate(new Date());
+    investment.setAmount(request.getAmount());
+    investment.setUserId(request.getUserId());
 
-    Investment updatedInvestment = investmentOptional.get();
-    updatedInvestment.setInvestmentType(investment.getInvestmentType());
-    updatedInvestment.setDate(new Date());
-    updatedInvestment.setAmount(investment.getAmount());
-    updatedInvestment.setUserId(investment.getUserId());
+    Investment updatedInvestment = investmentRepository.save(investment);
 
     return investmentRepository.save(updatedInvestment);
   }
