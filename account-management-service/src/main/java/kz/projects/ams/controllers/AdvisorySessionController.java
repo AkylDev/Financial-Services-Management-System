@@ -11,30 +11,30 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping
+@RequestMapping("/advisories")
 public class AdvisorySessionController {
 
   private final UserAdvisorySessionService advisorySessionService;
 
-  @PostMapping("/book-advisory")
+  @PostMapping
   public ResponseEntity<AdvisorySessionDTO> orderAdvisorySession(@RequestBody AdvisorySessionDTO request) {
     return new ResponseEntity<>(advisorySessionService.orderAdvisorySession(request), HttpStatus.CREATED);
   }
 
-  @GetMapping("/view-advisories")
+  @GetMapping
   public ResponseEntity<List<AdvisorySessionDTO>> getAdvisorySessionsPlanned() {
     List<AdvisorySessionDTO> advisorySessions = advisorySessionService.getAdvisorySessionsPlanned();
     return new ResponseEntity<>(advisorySessions, HttpStatus.OK);
   }
 
-  @PutMapping("/reschedule-advisory/{id}")
+  @PutMapping("/{id}")
   public ResponseEntity<Void> rescheduleAdvisorySession(@PathVariable("id") Long id,
                                         @RequestBody AdvisorySessionDTO request) {
     advisorySessionService.rescheduleAdvisorySession(id, request);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
-  @DeleteMapping("/delete-advisory/{id}")
+  @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteAdvisorySession(@PathVariable("id") Long id) {
     advisorySessionService.deleteAdvisorySession(id);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
