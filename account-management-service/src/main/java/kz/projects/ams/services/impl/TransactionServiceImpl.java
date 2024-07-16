@@ -42,6 +42,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     Account account = accountOptional.get();
+
+    if (!account.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
+      throw new IllegalArgumentException("You are not allowed");
+    }
+
     account.setBalance(account.getBalance() + request.getAmount());
     accountRepository.save(account);
 
@@ -64,6 +69,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     Account account = accountOptional.get();
+
+    if (!account.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
+      throw new IllegalArgumentException("You are not allowed");
+    }
+
     account.setBalance(account.getBalance() - request.getAmount());
     accountRepository.save(account);
 
@@ -87,6 +97,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     Account fromAccount = fromAccountOptional.get();
+
+    if (!fromAccount.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
+      throw new IllegalArgumentException("You are not allowed");
+    }
+
     fromAccount.setBalance(fromAccount.getBalance() - request.getAmount());
 
     Account toAccount = toAccountOptional.get();
