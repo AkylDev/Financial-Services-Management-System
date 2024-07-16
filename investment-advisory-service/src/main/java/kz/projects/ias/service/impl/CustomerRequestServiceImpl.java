@@ -2,7 +2,6 @@ package kz.projects.ias.service.impl;
 
 import kz.projects.ias.exceptions.CustomerServiceRequestNotFoundException;
 import kz.projects.ias.models.CustomerServiceRequest;
-import kz.projects.ias.models.enums.RequestStatus;
 import kz.projects.ias.repositories.CustomerServiceRequestRepository;
 import kz.projects.ias.service.CustomerRequestService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ public class CustomerRequestServiceImpl implements CustomerRequestService {
 
   @Override
   public CustomerServiceRequest createRequest(CustomerServiceRequest request) {
-    request.setStatus(RequestStatus.PENDING);
     return customerRequestRepository.save(request);
   }
 

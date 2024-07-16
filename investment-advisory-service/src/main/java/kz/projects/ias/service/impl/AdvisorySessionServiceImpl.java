@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +29,17 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
 
   private final CustomerRequestService customerRequestService;
 
+  private CustomerServiceRequest customerAdvisorySessionRequest(AdvisorySessionDTO request, String advisorName){
+    CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
+    customerServiceRequest.setUserId(request.getUserId());
+    customerServiceRequest.setRequestType(RequestType.ADVISORY);
+    customerServiceRequest.setDescription("Customer set up advisory session with " +
+            advisorName + " on " + request.getDate() +
+            " at " + request.getTime());
+
+    return customerServiceRequest;
+  }
+
   @Override
   public AdvisorySessionDTO createAdvisorySession(AdvisorySessionDTO request) {
 
@@ -38,14 +48,9 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
 
     AdvisorySession session = AdvisorySessionMapper.toEntity(request, advisor);
 
-    CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
-    customerServiceRequest.setUserId(request.getUserId());
-    customerServiceRequest.setRequestType(RequestType.INVESTMENT);
-    customerServiceRequest.setDescription("Customer set up advisory session with " +
-            session.getFinancialAdvisor().getName() + " on " + request.getDate() +
-            " at " + request.getTime());
-    customerServiceRequest.setStatus(RequestStatus.PENDING);
-    customerRequestService.createRequest(customerServiceRequest);
+    CustomerServiceRequest serviceRequest = customerAdvisorySessionRequest(request, session.getFinancialAdvisor().getName());
+    serviceRequest.setStatus(RequestStatus.PENDING);
+    customerRequestService.createRequest(serviceRequest);
 
     AdvisorySession savedSession = advisorySessionRepository.save(session);
 
@@ -63,39 +68,37 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   @Override
   public void updateAdvisorySession(AdvisorySessionDTO request) {
 
-    Optional<AdvisorySession> advisorySessionOptional = advisorySessionRepository.findById(request.getId());
+    AdvisorySession session = advisorySessionRepository.findById(request.getId())
+                    .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
 
-    if (advisorySessionOptional.isEmpty()){
-      throw new AdvisorySessionNotFoundException("AdvisorySession with this ID not found");
-    }
-
-    AdvisorySession advisorySession = advisorySessionOptional.get();
-
-    if (!advisorySession.getUserId().equals(request.getUserId())){
+    if (!session.getUserId().equals(request.getUserId())){
       throw new IllegalArgumentException("You are not allowed");
     }
 
-    advisorySession.setUserId(request.getUserId());
-    advisorySession.setDate(request.getDate());
-    advisorySession.setTime(request.getTime());
-    advisorySession.setStatus(RequestStatus.RESCHEDULED);
+    session.setUserId(request.getUserId());
+    session.setDate(request.getDate());
+    session.setTime(request.getTime());
+    session.setStatus(RequestStatus.RESCHEDULED);
 
-    advisorySessionRepository.save(advisorySession);
+    CustomerServiceRequest serviceRequest = customerAdvisorySessionRequest(request, session.getFinancialAdvisor().getName());
+    serviceRequest.setStatus(RequestStatus.RESCHEDULED);
+    customerRequestService.createRequest(serviceRequest);
+
+    advisorySessionRepository.save(session);
   }
 
   @Override
   public void deleteAdvisorySession(Long id, Long userId) {
-    Optional<AdvisorySession> advisorySessionOptional = advisorySessionRepository.findById(id);
+    AdvisorySession session = advisorySessionRepository.findById(id)
+            .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
 
-    if (advisorySessionOptional.isEmpty()) {
-      throw new AdvisorySessionNotFoundException("Advisory session with this ID not found");
-    }
-
-    AdvisorySession advisorySession = advisorySessionOptional.get();
-
-    if (!advisorySession.getUserId().equals(userId)) {
+    if (!session.getUserId().equals(userId)) {
       throw new IllegalArgumentException("You are not allowed");
     }
+
+    CustomerServiceRequest serviceRequest = customerAdvisorySessionRequest(AdvisorySessionMapper.toDto(session), session.getFinancialAdvisor().getName());
+    serviceRequest.setStatus(RequestStatus.CANCELLED);
+    customerRequestService.createRequest(serviceRequest);
 
     advisorySessionRepository.deleteById(id);
   }

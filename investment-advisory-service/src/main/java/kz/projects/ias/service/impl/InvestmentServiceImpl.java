@@ -21,7 +21,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +31,16 @@ public class InvestmentServiceImpl implements InvestmentService {
   private final RestTemplate restTemplate;
 
   private final CustomerRequestService customerRequestService;
+
+  private CustomerServiceRequest customerInvestmentRequest(InvestmentDTO investment){
+    CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
+    customerServiceRequest.setUserId(investment.getUserId());
+    customerServiceRequest.setRequestType(RequestType.INVESTMENT);
+    customerServiceRequest.setDescription("Customer invested " + investment.getAmount()
+            + "$ to " + investment.getInvestmentType());
+
+    return customerServiceRequest;
+  }
 
   @Override
   public InvestmentDTO createInvestment(InvestmentDTO request) {
@@ -54,13 +63,9 @@ public class InvestmentServiceImpl implements InvestmentService {
       Investment investment = InvestmentsMapper.toEntity(request);
       investment.setDate(new Date());
 
-      CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
-      customerServiceRequest.setUserId(investment.getUserId());
-      customerServiceRequest.setRequestType(RequestType.INVESTMENT);
-      customerServiceRequest.setDescription("Customer invested " + request.getAmount()
-              + "$ to " + investment.getInvestmentType());
-      customerServiceRequest.setStatus(RequestStatus.PENDING);
-      customerRequestService.createRequest(customerServiceRequest);
+      CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
+      serviceRequest.setStatus(RequestStatus.PENDING);
+      customerRequestService.createRequest(serviceRequest);
 
       Investment savedInvestment = investmentRepository.save(investment);
 
@@ -85,6 +90,10 @@ public class InvestmentServiceImpl implements InvestmentService {
     investment.setAmount(request.getAmount());
     investment.setUserId(request.getUserId());
 
+    CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
+    serviceRequest.setStatus(RequestStatus.RESCHEDULED);
+    customerRequestService.createRequest(serviceRequest);
+
     Investment updatedInvestment = investmentRepository.save(investment);
 
     return investmentRepository.save(updatedInvestment);
@@ -92,11 +101,14 @@ public class InvestmentServiceImpl implements InvestmentService {
 
   @Override
   public void deleteInvestment(Long id) {
-    Optional<Investment> investmentOptional = investmentRepository.findById(id);
+    Investment investment = investmentRepository.findById(id)
+            .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
 
-    if (investmentOptional.isEmpty()){
-      throw new InvestmentNotFoundException("Investment not found");
-    }
+    InvestmentDTO request = InvestmentsMapper.toDto(investment);
+
+    CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
+    serviceRequest.setStatus(RequestStatus.CANCELLED);
+    customerRequestService.createRequest(serviceRequest);
 
     investmentRepository.deleteById(id);
   }

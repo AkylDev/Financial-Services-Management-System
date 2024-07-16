@@ -16,6 +16,7 @@ public class InvestmentsMapper {
     dto.setId(investment.getId());
     dto.setUserId(investment.getUserId());
     dto.setDate(investment.getDate());
+    dto.setAmount(investment.getAmount());
     dto.setInvestmentType(investment.getInvestmentType());
 
     return dto;
