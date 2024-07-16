@@ -18,14 +18,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AdvisorySessionServiceImpl implements AdvisorySessionService {
 
   private final FinancialAdvisorRepository financialAdvisorRepository;
-
-  private final AdvisorySessionMapper advisorySessionMapper;
 
   private final AdvisorySessionRepository advisorySessionRepository;
 
@@ -34,36 +33,31 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   @Override
   public AdvisorySessionDTO createAdvisorySession(AdvisorySessionDTO request) {
 
-    Optional<FinancialAdvisor> advisorOptional = financialAdvisorRepository.findById(request.getAdvisoryId());
+    FinancialAdvisor advisor = financialAdvisorRepository.findById(request.getAdvisoryId())
+            .orElseThrow(() -> new FinancialAdvisorNotFoundException("Advisor not found"));
 
-    if (advisorOptional.isEmpty()){
-      throw new FinancialAdvisorNotFoundException("Financial Advisor Not Found!");
-    }
-
-    FinancialAdvisor advisor = advisorOptional.get();
-
-    AdvisorySession advisorySession = new AdvisorySession();
-    advisorySession.setUserId(request.getUserId());
-    advisorySession.setFinancialAdvisor(advisor);
-    advisorySession.setDate(request.getDate());
-    advisorySession.setTime(request.getTime());
-    advisorySession.setStatus(RequestStatus.PENDING);
+    AdvisorySession session = AdvisorySessionMapper.toEntity(request, advisor);
 
     CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
     customerServiceRequest.setUserId(request.getUserId());
     customerServiceRequest.setRequestType(RequestType.INVESTMENT);
     customerServiceRequest.setDescription("Customer set up advisory session with " +
-            advisorySession.getFinancialAdvisor().getName() + " on " + request.getDate() +
+            session.getFinancialAdvisor().getName() + " on " + request.getDate() +
             " at " + request.getTime());
     customerServiceRequest.setStatus(RequestStatus.PENDING);
     customerRequestService.createRequest(customerServiceRequest);
 
-    return advisorySessionMapper.toDto(advisorySessionRepository.save(advisorySession));
+    AdvisorySession savedSession = advisorySessionRepository.save(session);
+
+    return AdvisorySessionMapper.toDto(savedSession);
   }
 
   @Override
-  public List<AdvisorySession> getAdvisorySessions() {
-    return advisorySessionRepository.findAll();
+  public List<AdvisorySessionDTO> getAdvisorySessions(Long userId) {
+    List<AdvisorySession> sessions = advisorySessionRepository.findAllByUserId(userId);
+    return sessions.stream()
+            .map(AdvisorySessionMapper::toDto)
+            .collect(Collectors.toList());
   }
 
   @Override

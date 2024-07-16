@@ -1,6 +1,6 @@
 package kz.projects.ams.dto;
 
-import kz.projects.ams.models.TransactionType;
+import kz.projects.ams.models.enums.TransactionType;
 import lombok.Getter;
 import lombok.Setter;
 

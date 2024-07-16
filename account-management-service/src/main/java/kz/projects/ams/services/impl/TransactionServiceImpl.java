@@ -7,7 +7,7 @@ import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.mapper.TransactionMapper;
 import kz.projects.ams.models.Account;
 import kz.projects.ams.models.Transaction;
-import kz.projects.ams.models.TransactionType;
+import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.models.User;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.repositories.TransactionRepository;

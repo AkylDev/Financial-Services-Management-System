@@ -1,7 +1,6 @@
 package kz.projects.ias.controllers;
 
 import kz.projects.ias.dto.AdvisorySessionDTO;
-import kz.projects.ias.models.AdvisorySession;
 import kz.projects.ias.service.AdvisorySessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,13 +18,16 @@ public class AdvisorySessionController {
 
   @PostMapping
   public ResponseEntity<AdvisorySessionDTO> createAdvisorySession(@RequestBody AdvisorySessionDTO request) {
-    return new ResponseEntity<>(advisorySessionService.createAdvisorySession(request), HttpStatus.CREATED);
+    AdvisorySessionDTO createdSession = advisorySessionService.createAdvisorySession(request);
+    return new ResponseEntity<>(createdSession, HttpStatus.CREATED);
   }
 
   @GetMapping
-  public ResponseEntity<List<AdvisorySession>> getAdvisorySessions() {
-    return new ResponseEntity<>(advisorySessionService.getAdvisorySessions(), HttpStatus.OK);
+  public ResponseEntity<List<AdvisorySessionDTO>> getAdvisorySessions(@RequestParam("userId") Long userId) {
+    List<AdvisorySessionDTO> advisorySessions = advisorySessionService.getAdvisorySessions(userId);
+    return new ResponseEntity<>(advisorySessions, HttpStatus.OK);
   }
+
 
   @PutMapping
   public void updateAdvisorySession(@RequestBody AdvisorySessionDTO request) {

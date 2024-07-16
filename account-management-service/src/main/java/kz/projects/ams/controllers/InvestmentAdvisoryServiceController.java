@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 public class InvestmentAdvisoryServiceController {
@@ -30,6 +32,12 @@ public class InvestmentAdvisoryServiceController {
   @PostMapping("/book-advisory")
   public ResponseEntity<AdvisorySessionDTO> orderAdvisorySession(@RequestBody AdvisorySessionDTO request) {
     return new ResponseEntity<>(investmentAdvisoryService.orderAdvisorySession(request), HttpStatus.CREATED);
+  }
+
+  @GetMapping("/view-advisories")
+  public ResponseEntity<List<AdvisorySessionDTO>> getAdvisorySessionsPlanned() {
+    List<AdvisorySessionDTO> advisorySessions = investmentAdvisoryService.getAdvisorySessionsPlanned();
+    return new ResponseEntity<>(advisorySessions, HttpStatus.OK);
   }
 
   @PutMapping("/reschedule-advisory/{id}")

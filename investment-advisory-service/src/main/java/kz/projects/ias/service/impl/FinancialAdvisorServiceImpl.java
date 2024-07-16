@@ -1,5 +1,6 @@
 package kz.projects.ias.service.impl;
 
+import kz.projects.ias.dto.FinancialAdvisorDTO;
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
 import kz.projects.ias.models.FinancialAdvisor;
 import kz.projects.ias.repositories.FinancialAdvisorRepository;
@@ -7,6 +8,7 @@ import kz.projects.ias.service.FinancialAdvisorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,8 +18,16 @@ public class FinancialAdvisorServiceImpl implements FinancialAdvisorService {
   private final FinancialAdvisorRepository  financialAdvisorRepository;
 
   @Override
-  public FinancialAdvisor addFinancialAdvisor(FinancialAdvisor advisor) {
-    return financialAdvisorRepository.save(advisor);
+  public FinancialAdvisor addFinancialAdvisor(FinancialAdvisorDTO advisor) {
+    FinancialAdvisor financialAdvisor = new FinancialAdvisor();
+    financialAdvisor.setName(advisor.getName());
+    financialAdvisor.setSpecialization(advisor.getSpecialization());
+    return financialAdvisorRepository.save(financialAdvisor);
+  }
+
+  @Override
+  public List<FinancialAdvisor> getAllAdvisors() {
+    return financialAdvisorRepository.findAll();
   }
 
   @Override

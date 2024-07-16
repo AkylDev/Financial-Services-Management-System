@@ -1,5 +1,6 @@
 package kz.projects.ams.controllers;
 
+import kz.projects.ams.dto.AdviserDTO;
 import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.dto.UserDTO;
 import kz.projects.ams.services.UserService;
@@ -32,5 +33,10 @@ public class AuthController {
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
+  }
+
+  @PostMapping("/register-advisor")
+  public ResponseEntity<UserDTO> registerAsAdvisor(@RequestBody AdviserDTO adviser) {
+    return new ResponseEntity<>(userService.registerAsAdvisor(adviser), HttpStatus.CREATED);
   }
 }

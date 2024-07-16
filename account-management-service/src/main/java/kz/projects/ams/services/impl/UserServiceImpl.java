@@ -1,5 +1,6 @@
 package kz.projects.ams.services.impl;
 
+import kz.projects.ams.dto.AdviserDTO;
 import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.dto.UserDTO;
 import kz.projects.ams.mapper.UserMapper;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -32,6 +34,8 @@ public class UserServiceImpl implements UserService {
   private final MyUserDetailsService userDetailsService;
 
   private final UserMapper userMapper;
+
+  private final RestTemplate restTemplate;
 
   @Override
   public UserDTO register(UserDTO registerRequest) {
@@ -68,5 +72,34 @@ public class UserServiceImpl implements UserService {
     } else {
       throw new UsernameNotFoundException("Invalid credentials");
     }
+  }
+
+  @Override
+  public UserDTO registerAsAdvisor(AdviserDTO adviser) {
+    Optional<User> checkUser = userRepository.findByEmail(adviser.getEmail());
+    if (checkUser.isPresent()) {
+      throw new IllegalArgumentException("User with this email already exists.");
+    }
+
+    User newUser = new User();
+    newUser.setName(adviser.getName());
+    newUser.setEmail(adviser.getEmail());
+    newUser.setPassword(passwordEncoder.encode(adviser.getPassword()));
+
+    Permissions defaultPermission = permissionsRepository.findByRole("ROLE_ADVISOR");
+    if (defaultPermission == null) {
+      defaultPermission = new Permissions();
+      defaultPermission.setRole("ROLE_ADVISOR");
+      defaultPermission = permissionsRepository.save(defaultPermission);
+    }
+    newUser.setPermissionList(Collections.singletonList(defaultPermission));
+
+    restTemplate.postForObject(
+            "http://localhost:8092/financial-advisors",
+            adviser,
+            AdviserDTO.class
+    );
+
+    return userMapper.toDto(userRepository.save(newUser));
   }
 }

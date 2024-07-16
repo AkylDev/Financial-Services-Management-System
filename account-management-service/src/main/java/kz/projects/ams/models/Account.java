@@ -1,6 +1,7 @@
 package kz.projects.ams.models;
 
 import jakarta.persistence.*;
+import kz.projects.ams.models.enums.AccountType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

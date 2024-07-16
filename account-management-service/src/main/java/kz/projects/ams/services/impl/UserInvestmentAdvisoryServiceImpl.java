@@ -16,10 +16,14 @@ import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserInvestmentAdvisoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -99,6 +103,24 @@ public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisory
       throw new AdvisorySessionOrderException("Failed to order advisory session", e);
     }
   }
+
+  @Override
+  public List<AdvisorySessionDTO> getAdvisorySessionsPlanned() {
+    Long currentUserId = accountService.getCurrentSessionUser().getId();
+
+    try {
+      ResponseEntity<List<AdvisorySessionDTO>> response = restTemplate.exchange(
+              "http://localhost:8092/advisory-sessions?userId=" + currentUserId,
+              HttpMethod.GET,
+              null,
+              new ParameterizedTypeReference<>() {}
+      );
+      return response.getBody();
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
+    }
+  }
+
 
   @Override
   public void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request) {
