@@ -1,5 +1,6 @@
 package kz.projects.ams.services.impl;
 
+import com.sun.jdi.InternalException;
 import kz.projects.ams.dto.AdviserDTO;
 import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.dto.UserDTO;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
@@ -94,11 +96,16 @@ public class UserServiceImpl implements UserService {
     }
     newUser.setPermissionList(Collections.singletonList(defaultPermission));
 
-    restTemplate.postForObject(
-            "http://localhost:8092/financial-advisors",
-            adviser,
-            AdviserDTO.class
-    );
+    try {
+      restTemplate.postForObject(
+              "http://localhost:8092/financial-advisors",
+              adviser,
+              AdviserDTO.class
+      );
+    } catch (RestClientException e) {
+      throw new InternalException("Failed to get advisory sessions");
+    }
+
 
     return userMapper.toDto(userRepository.save(newUser));
   }
