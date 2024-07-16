@@ -4,6 +4,6 @@ public enum RequestStatus {
   PENDING,
   RESCHEDULED,
   COMPLETED,
-
+  CHANGED,
   CANCELLED
 }

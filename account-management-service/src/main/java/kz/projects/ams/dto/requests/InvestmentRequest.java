@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InvestmentRequest {
+  private Long id;
   private Long userId;
   private Long accountId;
   private InvestmentType investmentType;

@@ -30,6 +30,19 @@ public class InvestmentAdvisoryServiceController {
     return new ResponseEntity<>(investmentResponses, HttpStatus.CREATED);
   }
 
+  @PutMapping("/update-investment/{id}")
+  public ResponseEntity<Void> updateInvest(@PathVariable("id") Long id,
+                                           @RequestBody InvestmentRequest request) {
+    investmentAdvisoryService.updateInvestment(id, request);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @DeleteMapping("/delete-investment/{id}")
+  public ResponseEntity<Void> deleteInvestments(@PathVariable("id") Long id) {
+    investmentAdvisoryService.deleteInvestment(id);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
   @PostMapping("/check-balance")
   public ResponseEntity<BalanceCheckResponse> checkBalance(@RequestBody BalanceCheckRequest request) {
     return new ResponseEntity<>(investmentAdvisoryService.checkBalance(request), HttpStatus.OK);

@@ -12,6 +12,10 @@ public interface UserInvestmentAdvisoryService {
 
   InvestmentResponse toInvest(InvestmentRequest request);
 
+  void updateInvestment(Long id, InvestmentRequest request);
+
+  void deleteInvestment(Long id);
+
   List<InvestmentResponse> getAllUsersInvestments();
 
   BalanceCheckResponse checkBalance(BalanceCheckRequest request);

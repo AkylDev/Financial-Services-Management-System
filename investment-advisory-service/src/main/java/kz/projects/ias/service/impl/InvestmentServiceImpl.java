@@ -81,9 +81,13 @@ public class InvestmentServiceImpl implements InvestmentService {
   }
 
   @Override
-  public Investment updateInvestment(Long id, InvestmentDTO request) {
-    Investment investment = investmentRepository.findById(id)
+  public void updateInvestment(InvestmentDTO request) {
+    Investment investment = investmentRepository.findById(request.getId())
             .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
+
+    if (!investment.getUserId().equals(request.getUserId())){
+      throw new IllegalArgumentException("You are not allowed");
+    }
 
     investment.setInvestmentType(request.getInvestmentType());
     investment.setDate(new Date());
@@ -91,18 +95,20 @@ public class InvestmentServiceImpl implements InvestmentService {
     investment.setUserId(request.getUserId());
 
     CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
-    serviceRequest.setStatus(RequestStatus.RESCHEDULED);
+    serviceRequest.setStatus(RequestStatus.CHANGED);
     customerRequestService.createRequest(serviceRequest);
 
-    Investment updatedInvestment = investmentRepository.save(investment);
-
-    return investmentRepository.save(updatedInvestment);
+    investmentRepository.save(investment);
   }
 
   @Override
-  public void deleteInvestment(Long id) {
+  public void deleteInvestment(Long id, Long userId) {
     Investment investment = investmentRepository.findById(id)
             .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
+
+    if (!investment.getUserId().equals(userId)) {
+      throw new IllegalArgumentException("You are not allowed");
+    }
 
     InvestmentDTO request = InvestmentsMapper.toDto(investment);
 

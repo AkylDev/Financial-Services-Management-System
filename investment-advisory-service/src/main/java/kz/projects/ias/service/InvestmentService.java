@@ -10,7 +10,7 @@ public interface InvestmentService {
 
   List<Investment> getAllInvestments(Long userId);
 
-  Investment updateInvestment(Long id, InvestmentDTO investment);
+  void updateInvestment(InvestmentDTO investment);
 
-  void deleteInvestment(Long id);
+  void deleteInvestment(Long id, Long userId);
 }

@@ -72,6 +72,37 @@ public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentAdvisory
   }
 
   @Override
+  public void updateInvestment(Long id, InvestmentRequest request) {
+    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    request.setUserId(currentUserId);
+    request.setId(id);
+
+    try {
+      restTemplate.put(
+              "http://localhost:8092/investments",
+              request,
+              AdvisorySessionDTO.class
+      );
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to update the investment", e);
+    }
+  }
+
+  @Override
+  public void deleteInvestment(Long id) {
+    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    try {
+      restTemplate.delete(
+              "http://localhost:8092/investments/{id}?userId={userId}",
+              id, currentUserId
+      );
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to delete the investment", e);
+    }
+  }
+
+
+  @Override
   public List<InvestmentResponse> getAllUsersInvestments() {
     Long currentUserId = accountService.getCurrentSessionUser().getId();
 

@@ -29,16 +29,17 @@ public class InvestmentController {
     return new ResponseEntity<>(investmentList, HttpStatus.OK);
   }
 
-  @PutMapping("/{id}")
-  public ResponseEntity<Investment> updateInvestment(@PathVariable("id") Long id,
-                                                     @RequestBody InvestmentDTO investment) {
-    Investment updatedInvestment = investmentService.updateInvestment(id, investment);
-    return new ResponseEntity<>(updatedInvestment, HttpStatus.OK);
+  @PutMapping
+  public ResponseEntity<Void> updateInvestment(@RequestBody InvestmentDTO investment) {
+    investmentService.updateInvestment(investment);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @DeleteMapping("/{id}")
-  public void deleteInvestment(@PathVariable("id") Long id) {
-    investmentService.deleteInvestment(id);
+  public ResponseEntity<Void> deleteInvestment(@PathVariable("id") Long id,
+                               @RequestParam("userId") Long userId) {
+    investmentService.deleteInvestment(id, userId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
 
