@@ -27,6 +27,12 @@ public class AdvisorySessionController {
     return new ResponseEntity<>(advisorySessions, HttpStatus.OK);
   }
 
+  @GetMapping("/advisers")
+  public ResponseEntity<List<AdvisorySessionDTO>> getFinancialAdviserSessions() {
+    List<AdvisorySessionDTO> advisorySessions = advisorySessionService.getAdvisersSessions();
+    return new ResponseEntity<>(advisorySessions, HttpStatus.OK);
+  }
+
   @PutMapping("/{id}")
   public ResponseEntity<Void> rescheduleAdvisorySession(@PathVariable("id") Long id,
                                         @RequestBody AdvisorySessionDTO request) {

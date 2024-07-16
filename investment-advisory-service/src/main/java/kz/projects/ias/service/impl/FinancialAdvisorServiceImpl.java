@@ -21,6 +21,7 @@ public class FinancialAdvisorServiceImpl implements FinancialAdvisorService {
   public FinancialAdvisor addFinancialAdvisor(FinancialAdvisorDTO advisor) {
     FinancialAdvisor financialAdvisor = new FinancialAdvisor();
     financialAdvisor.setName(advisor.getName());
+    financialAdvisor.setEmail(advisor.getEmail());
     financialAdvisor.setSpecialization(advisor.getSpecialization());
     return financialAdvisorRepository.save(financialAdvisor);
   }

@@ -9,6 +9,8 @@ public interface UserAdvisorySessionService {
 
   List<AdvisorySessionDTO> getAdvisorySessionsPlanned();
 
+  List<AdvisorySessionDTO> getAdvisersSessions();
+
   void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request);
 
   void deleteAdvisorySession(Long id);

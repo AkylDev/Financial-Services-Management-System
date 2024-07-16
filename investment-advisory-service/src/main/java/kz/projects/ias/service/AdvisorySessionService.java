@@ -8,6 +8,7 @@ public interface AdvisorySessionService {
   AdvisorySessionDTO createAdvisorySession(AdvisorySessionDTO advisorySessionDTO);
 
   List<AdvisorySessionDTO> getAdvisorySessions(Long userId);
+  List<AdvisorySessionDTO> getFinancialAdviserSessions(String email);
 
   void updateAdvisorySession(AdvisorySessionDTO advisorySessionDTO);
 

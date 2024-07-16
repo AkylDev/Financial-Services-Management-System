@@ -66,6 +66,17 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   }
 
   @Override
+  public List<AdvisorySessionDTO> getFinancialAdviserSessions(String email) {
+    FinancialAdvisor advisor = financialAdvisorRepository.findByEmail(email)
+            .orElseThrow(() -> new FinancialAdvisorNotFoundException("Financial adviser not found"));
+
+    List<AdvisorySession> sessions = advisorySessionRepository.findAllByFinancialAdvisor(advisor);
+    return sessions.stream()
+            .map(AdvisorySessionMapper::toDto)
+            .collect(Collectors.toList());
+  }
+
+  @Override
   public void updateAdvisorySession(AdvisorySessionDTO request) {
 
     AdvisorySession session = advisorySessionRepository.findById(request.getId())

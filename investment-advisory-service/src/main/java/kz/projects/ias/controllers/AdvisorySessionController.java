@@ -28,6 +28,11 @@ public class AdvisorySessionController {
     return new ResponseEntity<>(advisorySessions, HttpStatus.OK);
   }
 
+  @GetMapping("/advisers")
+  public ResponseEntity<List<AdvisorySessionDTO>> getFinancialAdviserSessions(@RequestParam("email") String email) {
+    List<AdvisorySessionDTO> advisorySessions = advisorySessionService.getFinancialAdviserSessions(email);
+    return new ResponseEntity<>(advisorySessions, HttpStatus.OK);
+  }
 
   @PutMapping
   public void updateAdvisorySession(@RequestBody AdvisorySessionDTO request) {

@@ -57,6 +57,23 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
     }
   }
 
+  @Override
+  public List<AdvisorySessionDTO> getAdvisersSessions() {
+    String email = accountService.getCurrentSessionUser().getEmail();
+
+    try {
+      ResponseEntity<List<AdvisorySessionDTO>> response = restTemplate.exchange(
+              "http://localhost:8092/advisory-sessions/advisers?email=" + email,
+              HttpMethod.GET,
+              null,
+              new ParameterizedTypeReference<>() {}
+      );
+      return response.getBody();
+    } catch (RestClientException e) {
+      throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
+    }
+  }
+
 
   @Override
   public void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request) {
