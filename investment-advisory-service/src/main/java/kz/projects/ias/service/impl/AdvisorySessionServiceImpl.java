@@ -107,7 +107,8 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
       throw new IllegalArgumentException("You are not allowed");
     }
 
-    CustomerServiceRequest serviceRequest = customerAdvisorySessionRequest(AdvisorySessionMapper.toDto(session), session.getFinancialAdvisor().getName());
+    CustomerServiceRequest serviceRequest = customerAdvisorySessionRequest(AdvisorySessionMapper.toDto(session),
+            session.getFinancialAdvisor().getName());
     serviceRequest.setStatus(RequestStatus.CANCELLED);
     customerRequestService.createRequest(serviceRequest);
 
