@@ -36,13 +36,11 @@ public class FinancialAdvisorServiceImplTest {
 
   @Test
   void testAddFinancialAdvisor() {
-    // Mocking the input DTO
     FinancialAdvisorDTO advisorDTO = new FinancialAdvisorDTO();
     advisorDTO.setName("John Doe");
     advisorDTO.setEmail("john.doe@example.com");
     advisorDTO.setSpecialization(AdvisorSpecialization.ACCOUNTANT);
 
-    // Mocking the repository save method
     FinancialAdvisor savedAdvisor = new FinancialAdvisor();
     savedAdvisor.setId(1L);
     savedAdvisor.setName(advisorDTO.getName());
@@ -51,10 +49,8 @@ public class FinancialAdvisorServiceImplTest {
 
     when(financialAdvisorRepository.save(any(FinancialAdvisor.class))).thenReturn(savedAdvisor);
 
-    // Test the method
     FinancialAdvisor result = financialAdvisorService.addFinancialAdvisor(advisorDTO);
 
-    // Assertions
     assertNotNull(result);
     assertEquals(savedAdvisor.getId(), result.getId());
     assertEquals(savedAdvisor.getName(), result.getName());
@@ -64,7 +60,6 @@ public class FinancialAdvisorServiceImplTest {
 
   @Test
   void testGetAllAdvisors() {
-    // Mocking the repository response
     List<FinancialAdvisor> advisors = Arrays.asList(
             new FinancialAdvisor(1L, "Jane Smith", "jane.smith@example.com", AdvisorSpecialization.ACCOUNTANT),
             new FinancialAdvisor(2L, "Michael Brown", "michael.brown@example.com", AdvisorSpecialization.COACH)
@@ -72,10 +67,8 @@ public class FinancialAdvisorServiceImplTest {
 
     when(financialAdvisorRepository.findAll()).thenReturn(advisors);
 
-    // Test the method
     List<FinancialAdvisor> result = financialAdvisorService.getAllAdvisors();
 
-    // Assertions
     assertNotNull(result);
     assertEquals(advisors.size(), result.size());
     assertEquals(advisors.get(0).getName(), result.get(0).getName());
@@ -85,14 +78,13 @@ public class FinancialAdvisorServiceImplTest {
   @Test
   void testDeleteFinancialAdvisor_Success() {
     Long advisorId = 1L;
-    FinancialAdvisor advisorToDelete = new FinancialAdvisor(advisorId, "John Doe", "john.doe@example.com", AdvisorSpecialization.ACCOUNTANT);
+    FinancialAdvisor advisorToDelete = new FinancialAdvisor(advisorId, "John Doe", "john.doe@example.com",
+            AdvisorSpecialization.ACCOUNTANT);
 
     when(financialAdvisorRepository.findById(advisorId)).thenReturn(Optional.of(advisorToDelete));
 
-    // Test the method
     assertDoesNotThrow(() -> financialAdvisorService.deleteFinancialAdvisor(advisorId));
 
-    // Verify that deleteById method was called once
     verify(financialAdvisorRepository, times(1)).deleteById(advisorId);
   }
 
@@ -102,7 +94,6 @@ public class FinancialAdvisorServiceImplTest {
 
     when(financialAdvisorRepository.findById(advisorId)).thenReturn(Optional.empty());
 
-    // Test and assert FinancialAdvisorNotFoundException
     FinancialAdvisorNotFoundException exception = assertThrows(
             FinancialAdvisorNotFoundException.class,
             () -> financialAdvisorService.deleteFinancialAdvisor(advisorId)
