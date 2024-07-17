@@ -1,101 +1,105 @@
-# Advanced Financial Services Management System
+# Система Управления Продвинутыми Финансовыми Услугами
 
-Welcome to the Advanced Financial Services Management System, a sophisticated backend solution designed to streamline financial operations securely and efficiently.
+Добро пожаловать в Систему Управления Продвинутыми Финансовыми Услугами, современное решение для управления финансовыми операциями на базе Java и технологий Spring.
 
-## Overview
+## Обзор
 
-This project showcases cutting-edge financial service functionalities using Java and Spring technologies. It encompasses robust APIs for account management, transaction processing, investment portfolio management, customer service, and personalized financial advisory.
+Этот проект демонстрирует передовые функциональные возможности финансовых услуг, предлагая надежные API для управления счетами, обработки транзакций, управления инвестиционным портфелем, обслуживания клиентов и персонализированного финансового консультирования.
 
-## Business Case
+## Бизнес-кейс
 
-In today's dynamic financial landscape, efficient management of financial resources is crucial. Our system offers developers insights into implementing essential features of a modern financial service platform, emphasizing robust security protocols, real-time data integrity, and seamless user interactions.
+В современном динамичном финансовом мире эффективное управление финансовыми ресурсами играет ключевую роль. Наша система предоставляет разработчикам возможность реализации основных функций современной платформы финансовых услуг, акцентируя внимание на надежных протоколах безопасности, целостности данных в реальном времени и безупречном пользовательском взаимодействии.
 
-## Key Features
+## Основные функции
 
-- **Account Management**: Create, manage, and perform transactions (deposit, withdrawal, transfer) across diverse account types with real-time balance updates.
-- **Investment Management**: Seamlessly manage investments, view portfolio performance, and initiate investment transactions securely.
-- **Customer Service**: Submit service requests and track their status effortlessly, ensuring prompt resolution.
-- **Financial Advisory**: Schedule advisory sessions with specialized financial advisors, tailored to individual financial goals and strategies.
+- **Управление счетами**: Создание, управление и выполнение операций (внесение, снятие, перевод) по различным типам счетов с мгновенным обновлением баланса.
+- **Управление инвестициями**: Безупречное управление инвестициями, просмотр производительности портфеля и выполнение инвестиционных транзакций в безопасном режиме.
+- **Обслуживание клиентов**: Подача заявок на обслуживание и мониторинг их статуса с минимальными усилиями, обеспечивая оперативное решение проблем.
+- **Финансовое консультирование**: Планирование консультаций с финансовыми консультантами, настроенные на достижение индивидуальных финансовых целей и стратегий.
 
-## Architecture & Technologies Used
+## Архитектура и использованные технологии
 
-The system is built on:
-- **Java**: A powerful, object-oriented programming language.
-- **Spring Boot**: Facilitates rapid development and microservice architecture implementation.
-- **Spring Security**: Provides robust authentication and authorization mechanisms to safeguard sensitive data.
-- **Spring Data JPA**: Simplifies data access layer implementation and integrates seamlessly with PostgreSQL.
-- **PostgreSQL**: A reliable and scalable relational database management system for data storage.
+Система построена на:
+- **Java**: Мощный объектно-ориентированный язык программирования.
+- **Spring Boot**: Обеспечивает быструю разработку и реализацию микросервисной архитектуры.
+- **Spring Security**: Обеспечивает надежные механизмы аутентификации и авторизации для защиты чувствительных данных.
+- **Spring Data JPA**: Упрощает реализацию слоя доступа к данным и интегрируется на уровне PostgreSQL.
+- **PostgreSQL**: Надежная и масштабируемая система управления реляционными базами данных для хранения данных.
 
-## Security Measures
+## Меры безопасности
 
-Our system prioritizes security:
-- **Role-based Access Control**: Ensures that only authorized users can access sensitive functionalities.
-- **Encrypted Communications**: Utilizes HTTPS to encrypt data transmitted between clients and servers.
-- **Secure Authentication**: Implements token-based authentication to verify user identities securely.
+В нашей системе приоритет отдается безопасности:
+- **Контроль доступа на основе ролей**: Гарантирует доступ к чувствительным функциям только авторизованным пользователям.
+- **Шифрование данных**: Использует HTTPS для защиты передаваемых данных между клиентами и серверами.
+- **Безопасная аутентификация**: Реализует аутентификацию на основе токенов для безопасной проверки личности пользователей.
 
-## API Documentation
+## Документация по API
 
-Explore our APIs using Swagger:
-- **Interactive Documentation**: Easily navigate and test API endpoints with Swagger UI.
-- **Comprehensive API Details**: Understand request and response structures, error handling, and status codes.
+Изучите наши API с помощью Swagger:
+- **Интерактивная документация**: Легко ориентироваться и тестировать API-точки с помощью Swagger UI.
+- **Подробная информация о API**: Понимание структуры запросов и ответов, обработка ошибок и коды состояния.
 
-### Account Management Service
+### Сервис Управления Счетами
 
-#### API Endpoints
+#### API-точки
 
-- **User Authentication**:
-  - `POST /auth/register`: Register a new user.
-  - `POST /auth/login`: Authenticate user and obtain a session token.
-  - `POST /auth/logout`: Terminate the session.
+- **Аутентификация пользователя**:
+  - `POST /auth/register`: Регистрация нового пользователя.
+  - `POST /auth/login`: Аутентификация пользователя и получение токена сессии.
+  - `POST /auth/logout`: Завершение сессии пользователя.
 
-- **Account Operations**:
-  - `POST /accounts`: Create a new account.
-  - `GET /accounts`: Retrieve all user accounts.
-  - `PUT /accounts/{id}`: Update an existing account.
-  - `DELETE /accounts/{id}`: Delete an account.
+- **Операции счета**:
+  - `POST /accounts`: Создание нового счета.
+  - `GET /accounts`: Получение списка всех счетов пользователя.
+  - `PUT /accounts/{id}`: Обновление существующего счета.
+  - `DELETE /accounts/{id}`: Удаление счета.
 
-- **Transaction Operations**:
-  - `POST /transactions/deposit`: Deposit funds into a specific account.
-  - `POST /transactions/withdraw`: Withdraw funds from a specific account.
-  - `POST /transactions/transfer`: Transfer funds between accounts.
-  - `GET /transactions`: Retrieve transaction history.
+- **Операции с транзакциями**:
+  - `POST /transactions/deposit`: Внесение средств на указанный счет.
+  - `POST /transactions/withdraw`: Снятие средств с указанного счета.
+  - `POST /transactions/transfer`: Перевод средств между счетами.
+  - `GET /transactions`: Получение истории транзакций.
 
-### Investment and Advisory Service
+### Сервис Управления Инвестициями и Консультирования
 
-#### API Endpoints
+#### API-точки
 
-- **Investment Operations**:
-  - `POST /investments`: Create a new investment.
-  - `GET /investments`: Retrieve all user investments.
-  - `PUT /investments/{id}`: Update an existing investment.
-  - `DELETE /investments/{id}`: Delete an investment.
+- **Операции с инвестициями**:
+  - `POST /investments`: Создание новой инвестиции.
+  - `GET /investments`: Получение списка всех инвестиций пользователя.
+  - `PUT /investments/{id}`: Обновление существующей инвестиции.
+  - `DELETE /investments/{id}`: Удаление инвестиции.
 
-- **Customer Service Operations**:
-  - `POST /service-requests`: Create a new service request.
-  - `GET /service-requests`: Retrieve all user service requests.
-  - `PUT /service-requests/{id}`: Update an existing service request.
+- **Операции с обслуживанием клиентов**:
+  - `POST /service-requests`: Создание нового запроса на обслуживание.
+  - `GET /service-requests`: Получение списка всех запросов на обслуживание пользователя.
+  - `PUT /service-requests/{id}`: Обновление существующего запроса на обслуживание.
 
-- **Advisory Session Operations**:
-  - `POST /advisory-sessions`: Schedule a new advisory session.
-  - `GET /advisory-sessions`: Retrieve all scheduled advisory sessions.
-  - `PUT /advisory-sessions/{id}`: Reschedule an existing advisory session.
-  - `DELETE /advisory-sessions/{id}`: Cancel an advisory session.
+- **Операции с консультациями**:
+  - `POST /advisory-sessions`: Запись на новую консультацию.
+  - `GET /advisory-sessions`: Получение списка всех назначенных консультаций.
+  - `PUT /advisory-sessions/{id}`: Перенос существующей консультации.
+  - `DELETE /advisory-sessions/{id}`: Отмена консультации.
 
-## Getting Started
+## Начало работы
 
-As a backend-only project:
-- Clone the repository and configure it locally.
-- Set up your development environment with Java, Spring Boot, and PostgreSQL.
-- Utilize tools like Postman for API testing and validation.
+Так как проект представляет собой только back-end:
+- Клонируйте репозиторий и настройте локально.
+- Настройте ваше окружение разработки с Java, Spring Boot и PostgreSQL.
+- Используйте инструменты, такие как Postman, для тестирования и проверки API.
 
-## Usage
+## Использование
 
-1. **Authentication**: Obtain access tokens via `/auth/login` to authenticate API requests.
-2. **Account Management**: Create and manage accounts, perform transactions seamlessly.
-3. **Investment Management**: Monitor and manage investments, execute investment transactions.
-4. **Customer Service**: Submit service requests, track their progress, and receive updates.
-5. **Advisory Services**: Schedule advisory sessions with financial experts to optimize financial strategies.
+1. **Аутентификация**: Получите токен доступа через `/auth/login` для аутентификации запросов к API.
+2. **Управление счетами**: Создавайте и управляйте счетами, выполняйте операции счетов без проблем.
+3. **Управление инвестициями**: Мониторинг и управление инвестициями, выполнение инвестиционных транзакций.
+4. **Обслуживание клиентов**: Подача запросов на обслуживание, отслеживание их статуса и получение обновлений.
+5. **Консультационные услуги**: Запись на консультации с финансовыми экспертами для оптимизации финансовых стратегий.
+
+## Поддержка
+
+По всем вопросам или предложениям по улучшению проекта обращайтесь к разработчику.
 
 ---
 
-Explore the capabilities of our Advanced Financial Services Management System and experience efficient financial management at your fingertips!
+© 2024 Акыл. Все права защищены.
