@@ -1,10 +1,23 @@
 # Advanced Financial Services Management System
 
-Welcome to the Advanced Financial Services Management System, a robust backend API-based solution designed to manage financial operations efficiently and securely.
+Welcome to the Advanced Financial Services Management System, a powerful backend API-based solution designed to manage financial operations efficiently and securely.
 
 ## Overview
 
 This project implements essential financial services functionalities using Java and Spring technologies. It focuses on backend APIs for account management, transaction processing, investment management, customer service, and financial advisory.
+
+## Business Objective
+
+Financial services are critical for managing personal and business finances effectively. This project demonstrates best practices in financial system architecture, emphasizing security, scalability, and real-time transaction processing.
+
+## Technologies Used
+
+- **Java**: A robust and widely used programming language for enterprise applications.
+- **Spring Boot**: Facilitates rapid application development with Spring, providing dependency management, auto-configuration, and embedded HTTP servers.
+- **Spring Security**: Ensures secure access control and authentication mechanisms for protecting APIs and sensitive data.
+- **Spring Data JPA**: Simplifies data access layer implementation and integrates with the underlying database seamlessly.
+- **PostgreSQL**: A powerful open-source relational database management system used to store and manage data securely.
+- **Swagger**: Provides interactive API documentation, making it easy to understand and test the APIs.
 
 ## Key Features
 
@@ -29,18 +42,10 @@ Explore our API using Swagger:
 
 As this is a backend-only project, you can:
 - Clone the repository and configure it locally.
-- Set up your environment with Java and Spring Boot.
+- Set up your environment with Java, Spring Boot, and PostgreSQL.
 - Use your favorite REST client (e.g., Postman) to interact with the APIs.
 
-## Technologies Used
-
-- Java
-- Spring Boot
-- Spring Security
-- Spring Data JPA
-- PostgreSQL
-
-## How to Use
+## Usage
 
 1. **Authentication**: Use `/auth/login` to authenticate and obtain a session token.
 2. **Account Management**: Manage accounts and perform transactions.
@@ -50,4 +55,5 @@ As this is a backend-only project, you can:
 
 ---
 
-Enjoy exploring the capabilities of our Advanced Financial Services Management System!
+Explore the capabilities of our Advanced Financial Services Management System and experience efficient financial management at your fingertips!
+
