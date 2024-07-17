@@ -42,6 +42,4 @@ public class FinancialAdvisorServiceImpl implements FinancialAdvisorService {
 
     financialAdvisorRepository.deleteById(id);
   }
-
-
 }
