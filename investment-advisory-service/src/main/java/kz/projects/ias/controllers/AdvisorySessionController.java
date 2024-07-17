@@ -45,5 +45,4 @@ public class AdvisorySessionController {
     advisorySessionService.deleteAdvisorySession(id, userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
-
 }
