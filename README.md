@@ -1,86 +1,53 @@
 # Advanced Financial Services Management System
 
-## Description
-The Advanced Financial Services Management System is a comprehensive platform developed using Java and Spring technologies. It facilitates account management, transaction processing, investment portfolio management, customer service, and financial advisory.
+Welcome to the Advanced Financial Services Management System, a robust backend API-based solution designed to manage financial operations efficiently and securely.
 
-## Business Case
-Financial services play a crucial role in the economy, and an efficient management system can significantly enhance operational efficiency and accuracy. This project aims to provide developers with insights into building robust financial service applications, focusing on security, data integrity, and user interaction.
+## Overview
 
-## Suggested Architecture & Database Description
-The system comprises two microservices, each with its own database:
+This project implements essential financial services functionalities using Java and Spring technologies. It focuses on backend APIs for account management, transaction processing, investment management, customer service, and financial advisory.
 
-1. **Account Management Service**: Manages user registration, login, account operations, and transactions (deposit, withdrawal, transfer).
-2. **Investment and Advisory Service**: Handles investment management, customer service requests, and advisory sessions.
+## Key Features
 
-### Communication between Services
-- **Scenario**: A user wants to invest in a new financial product.
-- **Steps**:
-    1. User logs in and navigates to investments.
-    2. Investment service checks account balance by querying Account Management.
-    3. Investment service processes investment if funds are sufficient.
-    4. User receives notification of successful investment.
+- **Account Management**: Create, manage, and perform transactions (deposit, withdrawal, transfer) across different account types.
+- **Investment Management**: Manage investments, view portfolio, and initiate new investment transactions.
+- **Customer Service**: Submit service requests and track their status.
+- **Financial Advisory**: Schedule advisory sessions with specialized financial advisors.
 
-### Account Management Service
-- **Database Schema:**
-    - **Users**: `id`, `name`, `email`, `password`
-    - **Accounts**: `id`, `user_id`, `account_type`, `balance`
-    - **Transactions**: `id`, `account_id`, `type`, `amount`, `date`
-- **API Requirements:**
-    - **Authentication and Session Management:**
-        - `POST /auth/register`: Register a new user.
-        - `POST /auth/login`: Authenticate user and create a session.
-        - `POST /auth/logout`: Terminate the session.
-    - **Account Operations:**
-        - `POST /accounts`: Create a new account.
-        - `GET /accounts`: List all user's accounts.
-        - `PUT /accounts/{id}`: Update an existing account.
-        - `DELETE /accounts/{id}`: Delete an account.
-    - **Transaction Operations:**
-        - `POST /transactions/deposit`: Deposit funds into an account.
-        - `POST /transactions/withdraw`: Withdraw funds from an account.
-        - `POST /transactions/transfer`: Transfer funds between accounts.
-        - `GET /transactions`: View transaction history.
+## Security
 
-### Investment and Advisory Service
-- **Database Schema:**
-    - **Investments**: `id`, `user_id`, `investment_type`, `amount`, `date`
-    - **CustomerServiceRequests**: `id`, `user_id`, `request_type`, `description`, `status`
-    - **FinancialAdvisors**: `id`, `name`, `specialization`
-    - **AdvisorySessions**: `id`, `user_id`, `advisor_id`, `date`, `time`, `status`
-- **API Requirements:**
-    - **Investment Operations:**
-        - `POST /investments`: Create a new investment.
-        - `GET /investments`: List all user's investments.
-        - `PUT /investments/{id}`: Update an existing investment.
-        - `DELETE /investments/{id}`: Delete an investment.
-    - **Customer Service Operations:**
-        - `POST /service-requests`: Create a new service request.
-        - `GET /service-requests`: List all user's service requests.
-        - `PUT /service-requests/{id}`: Update an existing service request.
-    - **Advisory Session Operations:**
-        - `POST /advisory-sessions`: Schedule a new advisory session.
-        - `GET /advisory-sessions`: List all user's advisory sessions.
-        - `PUT /advisory-sessions/{id}`: Reschedule an existing advisory session.
-        - `DELETE /advisory-sessions/{id}`: Cancel an advisory session.
+Security is paramount in our system:
+- Access to sensitive endpoints is restricted using Spring Security.
+- Unauthorized access attempts are blocked from endpoints such as `/swagger-ui/**`, `/auth/**`, and `/check-balance`.
 
-## Installation
-1. **Clone the repository:**
-   ```sh
-   git clone <repository_url>
-   cd <repository_directory>
-   ```
-   
-2. **Database Setup:
+## API Documentation
 
-- Ensure PostgreSQL is installed and running.
-- Configure database settings in application.properties.
+Explore our API using Swagger:
+- Swagger UI provides detailed documentation on how to interact with our APIs securely.
+- View API endpoints, request parameters, response models, and error messages.
 
-3. **Build and Run:**
+## Getting Started
 
-```sh
-./mvnw clean install
-cd account-management-service
-./mvnw spring-boot:run
-cd ../investment-advisory-service
-./mvnw spring-boot:run
-```
+As this is a backend-only project, you can:
+- Clone the repository and configure it locally.
+- Set up your environment with Java and Spring Boot.
+- Use your favorite REST client (e.g., Postman) to interact with the APIs.
+
+## Technologies Used
+
+- Java
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- PostgreSQL
+
+## How to Use
+
+1. **Authentication**: Use `/auth/login` to authenticate and obtain a session token.
+2. **Account Management**: Manage accounts and perform transactions.
+3. **Investment Management**: Create and manage investments.
+4. **Customer Service**: Submit and track service requests.
+5. **Advisory Services**: Book advisory sessions with financial advisors.
+
+---
+
+Enjoy exploring the capabilities of our Advanced Financial Services Management System!
