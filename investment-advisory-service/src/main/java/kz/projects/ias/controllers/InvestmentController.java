@@ -41,6 +41,4 @@ public class InvestmentController {
     investmentService.deleteInvestment(id, userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
-
-
 }

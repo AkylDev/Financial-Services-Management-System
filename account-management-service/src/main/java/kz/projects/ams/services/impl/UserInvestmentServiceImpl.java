@@ -28,7 +28,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentService {
+public class UserInvestmentServiceImpl implements UserInvestmentService {
 
   private final RestTemplate restTemplate;
 
@@ -135,5 +135,4 @@ public class UserInvestmentAdvisoryServiceImpl implements UserInvestmentService 
 
     return balanceCheckResponse;
   }
-
 }
