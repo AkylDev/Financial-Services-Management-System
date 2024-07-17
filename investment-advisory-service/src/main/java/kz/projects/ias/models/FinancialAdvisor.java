@@ -2,12 +2,16 @@ package kz.projects.ias.models;
 
 import jakarta.persistence.*;
 import kz.projects.ias.models.enums.AdvisorSpecialization;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "t_advisors")
 public class FinancialAdvisor {
   @Id
