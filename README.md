@@ -1,59 +1,101 @@
 # Advanced Financial Services Management System
 
-Welcome to the Advanced Financial Services Management System, a powerful backend API-based solution designed to manage financial operations efficiently and securely.
+Welcome to the Advanced Financial Services Management System, a sophisticated backend solution designed to streamline financial operations securely and efficiently.
 
 ## Overview
 
-This project implements essential financial services functionalities using Java and Spring technologies. It focuses on backend APIs for account management, transaction processing, investment management, customer service, and financial advisory.
+This project showcases cutting-edge financial service functionalities using Java and Spring technologies. It encompasses robust APIs for account management, transaction processing, investment portfolio management, customer service, and personalized financial advisory.
 
-## Business Objective
+## Business Case
 
-Financial services are critical for managing personal and business finances effectively. This project demonstrates best practices in financial system architecture, emphasizing security, scalability, and real-time transaction processing.
-
-## Technologies Used
-
-- **Java**: A robust and widely used programming language for enterprise applications.
-- **Spring Boot**: Facilitates rapid application development with Spring, providing dependency management, auto-configuration, and embedded HTTP servers.
-- **Spring Security**: Ensures secure access control and authentication mechanisms for protecting APIs and sensitive data.
-- **Spring Data JPA**: Simplifies data access layer implementation and integrates with the underlying database seamlessly.
-- **PostgreSQL**: A powerful open-source relational database management system used to store and manage data securely.
-- **Swagger**: Provides interactive API documentation, making it easy to understand and test the APIs.
+In today's dynamic financial landscape, efficient management of financial resources is crucial. Our system offers developers insights into implementing essential features of a modern financial service platform, emphasizing robust security protocols, real-time data integrity, and seamless user interactions.
 
 ## Key Features
 
-- **Account Management**: Create, manage, and perform transactions (deposit, withdrawal, transfer) across different account types.
-- **Investment Management**: Manage investments, view portfolio, and initiate new investment transactions.
-- **Customer Service**: Submit service requests and track their status.
-- **Financial Advisory**: Schedule advisory sessions with specialized financial advisors.
+- **Account Management**: Create, manage, and perform transactions (deposit, withdrawal, transfer) across diverse account types with real-time balance updates.
+- **Investment Management**: Seamlessly manage investments, view portfolio performance, and initiate investment transactions securely.
+- **Customer Service**: Submit service requests and track their status effortlessly, ensuring prompt resolution.
+- **Financial Advisory**: Schedule advisory sessions with specialized financial advisors, tailored to individual financial goals and strategies.
 
-## Security
+## Architecture & Technologies Used
 
-Security is paramount in our system:
-- Access to sensitive endpoints is restricted using Spring Security.
-- Unauthorized access attempts are blocked from endpoints such as `/swagger-ui/**`, `/auth/**`, and `/check-balance`.
+The system is built on:
+- **Java**: A powerful, object-oriented programming language.
+- **Spring Boot**: Facilitates rapid development and microservice architecture implementation.
+- **Spring Security**: Provides robust authentication and authorization mechanisms to safeguard sensitive data.
+- **Spring Data JPA**: Simplifies data access layer implementation and integrates seamlessly with PostgreSQL.
+- **PostgreSQL**: A reliable and scalable relational database management system for data storage.
+
+## Security Measures
+
+Our system prioritizes security:
+- **Role-based Access Control**: Ensures that only authorized users can access sensitive functionalities.
+- **Encrypted Communications**: Utilizes HTTPS to encrypt data transmitted between clients and servers.
+- **Secure Authentication**: Implements token-based authentication to verify user identities securely.
 
 ## API Documentation
 
-Explore our API using Swagger:
-- Swagger UI provides detailed documentation on how to interact with our APIs securely.
-- View API endpoints, request parameters, response models, and error messages.
+Explore our APIs using Swagger:
+- **Interactive Documentation**: Easily navigate and test API endpoints with Swagger UI.
+- **Comprehensive API Details**: Understand request and response structures, error handling, and status codes.
+
+### Account Management Service
+
+#### API Endpoints
+
+- **User Authentication**:
+  - `POST /auth/register`: Register a new user.
+  - `POST /auth/login`: Authenticate user and obtain a session token.
+  - `POST /auth/logout`: Terminate the session.
+
+- **Account Operations**:
+  - `POST /accounts`: Create a new account.
+  - `GET /accounts`: Retrieve all user accounts.
+  - `PUT /accounts/{id}`: Update an existing account.
+  - `DELETE /accounts/{id}`: Delete an account.
+
+- **Transaction Operations**:
+  - `POST /transactions/deposit`: Deposit funds into a specific account.
+  - `POST /transactions/withdraw`: Withdraw funds from a specific account.
+  - `POST /transactions/transfer`: Transfer funds between accounts.
+  - `GET /transactions`: Retrieve transaction history.
+
+### Investment and Advisory Service
+
+#### API Endpoints
+
+- **Investment Operations**:
+  - `POST /investments`: Create a new investment.
+  - `GET /investments`: Retrieve all user investments.
+  - `PUT /investments/{id}`: Update an existing investment.
+  - `DELETE /investments/{id}`: Delete an investment.
+
+- **Customer Service Operations**:
+  - `POST /service-requests`: Create a new service request.
+  - `GET /service-requests`: Retrieve all user service requests.
+  - `PUT /service-requests/{id}`: Update an existing service request.
+
+- **Advisory Session Operations**:
+  - `POST /advisory-sessions`: Schedule a new advisory session.
+  - `GET /advisory-sessions`: Retrieve all scheduled advisory sessions.
+  - `PUT /advisory-sessions/{id}`: Reschedule an existing advisory session.
+  - `DELETE /advisory-sessions/{id}`: Cancel an advisory session.
 
 ## Getting Started
 
-As this is a backend-only project, you can:
+As a backend-only project:
 - Clone the repository and configure it locally.
-- Set up your environment with Java, Spring Boot, and PostgreSQL.
-- Use your favorite REST client (e.g., Postman) to interact with the APIs.
+- Set up your development environment with Java, Spring Boot, and PostgreSQL.
+- Utilize tools like Postman for API testing and validation.
 
 ## Usage
 
-1. **Authentication**: Use `/auth/login` to authenticate and obtain a session token.
-2. **Account Management**: Manage accounts and perform transactions.
-3. **Investment Management**: Create and manage investments.
-4. **Customer Service**: Submit and track service requests.
-5. **Advisory Services**: Book advisory sessions with financial advisors.
+1. **Authentication**: Obtain access tokens via `/auth/login` to authenticate API requests.
+2. **Account Management**: Create and manage accounts, perform transactions seamlessly.
+3. **Investment Management**: Monitor and manage investments, execute investment transactions.
+4. **Customer Service**: Submit service requests, track their progress, and receive updates.
+5. **Advisory Services**: Schedule advisory sessions with financial experts to optimize financial strategies.
 
 ---
 
 Explore the capabilities of our Advanced Financial Services Management System and experience efficient financial management at your fingertips!
-
