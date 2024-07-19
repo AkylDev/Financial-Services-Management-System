@@ -71,34 +71,35 @@ public class UserInvestmentServiceImplTest {
     account.setUser(user);
     account.setBalance(1000.0);
 
-    investmentRequest = new InvestmentRequest();
-    investmentRequest.setAccountId(1L);
-    investmentRequest.setAmount(500.0);
+    investmentRequest = new InvestmentRequest(
+            1L, user.getId(), account.getId(), null, 500.0
+    );
 
-    investmentResponse = new InvestmentResponse();
-    investmentResponse.setId(1L);
-    investmentResponse.setUserId(1L);
-    investmentResponse.setAmount(500.0);
-    investmentResponse.setDate(new Date());
+    investmentResponse = new InvestmentResponse(
+            1L,
+            1L,
+            null,
+            500.0,
+            new Date()
+    );
 
-    transactionRequest = new TransactionRequest();
-    transactionRequest.setAccountId(1L);
-    transactionRequest.setAmount(500.0);
+    transactionRequest = new TransactionRequest(
+            1L,
+            500.0
+    );
 
-    balanceCheckRequest = new BalanceCheckRequest();
-    balanceCheckRequest.setAccountId(1L);
-    balanceCheckRequest.setAmount(500.0);
-
-    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse();
-    balanceCheckResponse.setCurrentBalance(1000.0);
-    balanceCheckResponse.setSufficientFunds(true);
+    balanceCheckRequest = new BalanceCheckRequest(
+            1L,
+            500.0
+    );
   }
 
   @Test
   public void testToInvest_Success() {
-    when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+    when(accountRepository.findById(any(Long.class))).thenReturn(Optional.of(account));
     when(accountService.getCurrentSessionUser()).thenReturn(user);
-    when(restTemplate.postForObject(eq("http://localhost:8092/investments"), any(InvestmentRequest.class), eq(InvestmentResponse.class)))
+    when(restTemplate.postForObject(eq("http://localhost:8092/investments"),
+            any(InvestmentRequest.class), eq(InvestmentResponse.class)))
             .thenReturn(investmentResponse);
 
     InvestmentResponse response = userInvestmentService.toInvest(investmentRequest);
@@ -108,11 +109,11 @@ public class UserInvestmentServiceImplTest {
     TransactionRequest capturedRequest = captor.getValue();
 
     assertNotNull(response);
-    assertEquals(1L, response.getId());
-    assertEquals(500.0, response.getAmount());
+    assertEquals(1L, response.id());
+    assertEquals(500.0, response.amount());
 
-    assertEquals(transactionRequest.getAccountId(), capturedRequest.getAccountId());
-    assertEquals(transactionRequest.getAmount(), capturedRequest.getAmount());
+    assertEquals(transactionRequest.accountId(), capturedRequest.accountId());
+    assertEquals(transactionRequest.amount(), capturedRequest.amount());
   }
 
   @Test
@@ -205,8 +206,8 @@ public class UserInvestmentServiceImplTest {
     BalanceCheckResponse response = userInvestmentService.checkBalance(balanceCheckRequest);
 
     assertNotNull(response);
-    assertTrue(response.isSufficientFunds());
-    assertEquals(1000.0, response.getCurrentBalance());
+    assertTrue(response.sufficientFunds());
+    assertEquals(1000.0, response.currentBalance());
   }
 
   @Test

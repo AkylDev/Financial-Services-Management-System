@@ -25,9 +25,14 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
 
   @Override
   public AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request) {
-
     Long currentUserId = accountService.getCurrentSessionUser().getId();
-    request.setUserId(currentUserId);
+    request = new AdvisorySessionDTO(
+            request.id(),
+            currentUserId,
+            request.advisoryId(),
+            request.date(),
+            request.time()
+    );
 
     try {
       return restTemplate.postForObject(
@@ -78,8 +83,13 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   @Override
   public void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request) {
     Long currentUserId = accountService.getCurrentSessionUser().getId();
-    request.setUserId(currentUserId);
-    request.setId(id);
+    request = new AdvisorySessionDTO(
+            id,
+            currentUserId,
+            request.advisoryId(),
+            request.date(),
+            request.time()
+    );
 
     try {
       restTemplate.put(

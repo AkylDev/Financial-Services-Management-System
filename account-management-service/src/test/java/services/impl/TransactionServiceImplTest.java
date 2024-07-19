@@ -48,9 +48,7 @@ public class TransactionServiceImplTest {
 
   @Test
   public void testDeposit() {
-    TransactionRequest request = new TransactionRequest();
-    request.setAccountId(1L);
-    request.setAmount(100.0);
+    TransactionRequest request = new TransactionRequest(1L, 100.0);
 
     User currentUser = new User();
     currentUser.setId(1L);
@@ -66,12 +64,15 @@ public class TransactionServiceImplTest {
     transaction.setAmount(100.0);
     transaction.setDate(new Date());
 
-    TransactionDTO transactionDTO = new TransactionDTO();
-    transactionDTO.setAccountId(1L);
-    transactionDTO.setAmount(100.0);
-    transactionDTO.setType(TransactionType.DEPOSIT);
+    TransactionDTO transactionDTO = new TransactionDTO(
+            1L,
+            1L,
+            TransactionType.DEPOSIT,
+            100.0,
+            new Date()
+    );
 
-    Mockito.when(accountRepository.findById(request.getAccountId())).thenReturn(Optional.of(account));
+    Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
     Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.save(Mockito.any(Transaction.class))).thenReturn(transaction);
     Mockito.when(transactionMapper.toDto(transaction)).thenReturn(transactionDTO);
@@ -79,27 +80,30 @@ public class TransactionServiceImplTest {
     TransactionDTO result = transactionService.deposit(request);
 
     assertNotNull(result);
-    assertEquals(transactionDTO.getAccountId(), result.getAccountId());
-    assertEquals(transactionDTO.getAmount(), result.getAmount());
-    assertEquals(transactionDTO.getType(), result.getType());
+    assertEquals(transactionDTO.accountId(), result.accountId());
+    assertEquals(transactionDTO.amount(), result.amount());
+    assertEquals(transactionDTO.type(), result.type());
   }
+
 
   @Test(expected = UserAccountNotFoundException.class)
   public void testDepositAccountNotFound() {
-    TransactionRequest request = new TransactionRequest();
-    request.setAccountId(999L);
-    request.setAmount(100.0);
+    TransactionRequest request = new TransactionRequest(
+            999L,
+            100.0
+    );
 
-    Mockito.when(accountRepository.findById(request.getAccountId())).thenReturn(Optional.empty());
+    Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.empty());
 
     transactionService.deposit(request);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testDepositUnauthorized() {
-    TransactionRequest request = new TransactionRequest();
-    request.setAccountId(1L);
-    request.setAmount(100.0);
+    TransactionRequest request = new TransactionRequest(
+            999L,
+            100.0
+    );
 
     User currentUser = new User();
     currentUser.setId(2L);
@@ -112,7 +116,7 @@ public class TransactionServiceImplTest {
     account.setUser(accountUser);
     account.setBalance(500.0);
 
-    Mockito.when(accountRepository.findById(request.getAccountId())).thenReturn(Optional.of(account));
+    Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
     Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
 
     transactionService.deposit(request);
@@ -120,9 +124,7 @@ public class TransactionServiceImplTest {
 
   @Test
   public void testWithdraw() {
-    TransactionRequest request = new TransactionRequest();
-    request.setAccountId(1L);
-    request.setAmount(100.0);
+    TransactionRequest request = new TransactionRequest(1L, 100.0);
 
     User currentUser = new User();
     currentUser.setId(1L);
@@ -138,12 +140,15 @@ public class TransactionServiceImplTest {
     transaction.setAmount(100.0);
     transaction.setDate(new Date());
 
-    TransactionDTO transactionDTO = new TransactionDTO();
-    transactionDTO.setAccountId(1L);
-    transactionDTO.setAmount(100.0);
-    transactionDTO.setType(TransactionType.WITHDRAWAL);
+    TransactionDTO transactionDTO = new TransactionDTO(
+            1L,
+            1L,
+            TransactionType.WITHDRAWAL,
+            100.0,
+            new Date()
+    );
 
-    Mockito.when(accountRepository.findById(request.getAccountId())).thenReturn(Optional.of(account));
+    Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
     Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.save(Mockito.any(Transaction.class))).thenReturn(transaction);
     Mockito.when(transactionMapper.toDto(transaction)).thenReturn(transactionDTO);
@@ -151,27 +156,30 @@ public class TransactionServiceImplTest {
     TransactionDTO result = transactionService.withdraw(request);
 
     assertNotNull(result);
-    assertEquals(transactionDTO.getAccountId(), result.getAccountId());
-    assertEquals(transactionDTO.getAmount(), result.getAmount());
-    assertEquals(transactionDTO.getType(), result.getType());
+    assertEquals(transactionDTO.accountId(), result.accountId());
+    assertEquals(transactionDTO.amount(), result.amount());
+    assertEquals(transactionDTO.type(), result.type());
   }
+
 
   @Test(expected = UserAccountNotFoundException.class)
   public void testWithdrawAccountNotFound() {
-    TransactionRequest request = new TransactionRequest();
-    request.setAccountId(999L);
-    request.setAmount(100.0);
+    TransactionRequest request = new TransactionRequest(
+            999L,
+            100.0
+    );
 
-    Mockito.when(accountRepository.findById(request.getAccountId())).thenReturn(Optional.empty());
+    Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.empty());
 
     transactionService.withdraw(request);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testWithdrawUnauthorized() {
-    TransactionRequest request = new TransactionRequest();
-    request.setAccountId(1L);
-    request.setAmount(100.0);
+    TransactionRequest request = new TransactionRequest(
+            999L,
+            100.0
+    );
 
     User currentUser = new User();
     currentUser.setId(2L);
@@ -184,7 +192,7 @@ public class TransactionServiceImplTest {
     account.setUser(accountUser);
     account.setBalance(500.0);
 
-    Mockito.when(accountRepository.findById(request.getAccountId())).thenReturn(Optional.of(account));
+    Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
     Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
 
     transactionService.withdraw(request);
@@ -192,10 +200,7 @@ public class TransactionServiceImplTest {
 
   @Test
   public void testTransfer() {
-    TransferRequest request = new TransferRequest();
-    request.setFromAccount(1L);
-    request.setToAccount(2L);
-    request.setAmount(100.0);
+    TransferRequest request = new TransferRequest(1L, 2L, 100.0);
 
     User currentUser = new User();
     currentUser.setId(1L);
@@ -215,13 +220,16 @@ public class TransactionServiceImplTest {
     transaction.setAmount(100.0);
     transaction.setDate(new Date());
 
-    TransactionDTO transactionDTO = new TransactionDTO();
-    transactionDTO.setAccountId(1L);
-    transactionDTO.setAmount(100.0);
-    transactionDTO.setType(TransactionType.TRANSFER);
+    TransactionDTO transactionDTO = new TransactionDTO(
+            1L,
+            1L,
+            TransactionType.TRANSFER,
+            100.0,
+            new Date()
+    );
 
-    Mockito.when(accountRepository.findById(request.getFromAccount())).thenReturn(Optional.of(fromAccount));
-    Mockito.when(accountRepository.findById(request.getToAccount())).thenReturn(Optional.of(toAccount));
+    Mockito.when(accountRepository.findById(request.fromAccount())).thenReturn(Optional.of(fromAccount));
+    Mockito.when(accountRepository.findById(request.toAccount())).thenReturn(Optional.of(toAccount));
     Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.save(Mockito.any(Transaction.class))).thenReturn(transaction);
     Mockito.when(transactionMapper.toDto(transaction)).thenReturn(transactionDTO);
@@ -229,30 +237,33 @@ public class TransactionServiceImplTest {
     TransactionDTO result = transactionService.transfer(request);
 
     assertNotNull(result);
-    assertEquals(transactionDTO.getAccountId(), result.getAccountId());
-    assertEquals(transactionDTO.getAmount(), result.getAmount());
-    assertEquals(transactionDTO.getType(), result.getType());
+    assertEquals(transactionDTO.accountId(), result.accountId());
+    assertEquals(transactionDTO.amount(), result.amount());
+    assertEquals(transactionDTO.type(), result.type());
   }
+
 
   @Test(expected = UserAccountNotFoundException.class)
   public void testTransferAccountNotFound() {
-    TransferRequest request = new TransferRequest();
-    request.setFromAccount(1L);
-    request.setToAccount(2L);
-    request.setAmount(100.0);
+    TransferRequest request = new TransferRequest(
+            1L,
+            2L,
+            100.
+    );
 
-    Mockito.when(accountRepository.findById(request.getFromAccount())).thenReturn(Optional.empty());
-    Mockito.when(accountRepository.findById(request.getToAccount())).thenReturn(Optional.empty());
+    Mockito.when(accountRepository.findById(request.fromAccount())).thenReturn(Optional.empty());
+    Mockito.when(accountRepository.findById(request.toAccount())).thenReturn(Optional.empty());
 
     transactionService.transfer(request);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testTransferUnauthorized() {
-    TransferRequest request = new TransferRequest();
-    request.setFromAccount(1L);
-    request.setToAccount(2L);
-    request.setAmount(100.0);
+    TransferRequest request = new TransferRequest(
+            1L,
+            2L,
+            100.
+    );
 
     User currentUser = new User();
     currentUser.setId(2L);
@@ -269,8 +280,8 @@ public class TransactionServiceImplTest {
     toAccount.setId(2L);
     toAccount.setBalance(300.0);
 
-    Mockito.when(accountRepository.findById(request.getFromAccount())).thenReturn(Optional.of(fromAccount));
-    Mockito.when(accountRepository.findById(request.getToAccount())).thenReturn(Optional.of(toAccount));
+    Mockito.when(accountRepository.findById(request.fromAccount())).thenReturn(Optional.of(fromAccount));
+    Mockito.when(accountRepository.findById(request.toAccount())).thenReturn(Optional.of(toAccount));
     Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
 
     transactionService.transfer(request);
@@ -288,10 +299,13 @@ public class TransactionServiceImplTest {
     transaction.setDate(new Date());
 
     List<Transaction> transactions = Collections.singletonList(transaction);
-    TransactionDTO transactionDTO = new TransactionDTO();
-    transactionDTO.setAccountId(1L);
-    transactionDTO.setAmount(100.0);
-    transactionDTO.setType(TransactionType.DEPOSIT);
+    TransactionDTO transactionDTO = new TransactionDTO(
+            1L,
+            1L,
+            TransactionType.DEPOSIT,
+            100.0,
+            new Date()
+    );
 
     Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.findAllByUserId(currentUser.getId())).thenReturn(transactions);
@@ -301,8 +315,9 @@ public class TransactionServiceImplTest {
 
     assertNotNull(result);
     assertEquals(1, result.size());
-    assertEquals(transactionDTO.getAccountId(), result.get(0).getAccountId());
-    assertEquals(transactionDTO.getAmount(), result.get(0).getAmount());
-    assertEquals(transactionDTO.getType(), result.get(0).getType());
+    assertEquals(transactionDTO.accountId(), result.get(0).accountId());
+    assertEquals(transactionDTO.amount(), result.get(0).amount());
+    assertEquals(transactionDTO.type(), result.get(0).type());
   }
+
 }

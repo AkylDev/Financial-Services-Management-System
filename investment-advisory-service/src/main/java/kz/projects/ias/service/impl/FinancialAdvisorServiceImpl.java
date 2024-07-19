@@ -20,9 +20,9 @@ public class FinancialAdvisorServiceImpl implements FinancialAdvisorService {
   @Override
   public FinancialAdvisor addFinancialAdvisor(FinancialAdvisorDTO advisor) {
     FinancialAdvisor financialAdvisor = new FinancialAdvisor();
-    financialAdvisor.setName(advisor.getName());
-    financialAdvisor.setEmail(advisor.getEmail());
-    financialAdvisor.setSpecialization(advisor.getSpecialization());
+    financialAdvisor.setName(advisor.name());
+    financialAdvisor.setEmail(advisor.email());
+    financialAdvisor.setSpecialization(advisor.specialization());
     return financialAdvisorRepository.save(financialAdvisor);
   }
 

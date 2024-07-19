@@ -14,23 +14,22 @@ public class AdvisorySessionMapper {
       return null;
     }
 
-    AdvisorySessionDTO dto = new AdvisorySessionDTO();
-    dto.setId(session.getId());
-    dto.setAdvisoryId(session.getFinancialAdvisor() != null ? session.getFinancialAdvisor().getId() : null);
-    dto.setUserId(session.getUserId());
-    dto.setDate(session.getDate());
-    dto.setTime(session.getTime());
-
-    return dto;
+    return new AdvisorySessionDTO(
+            session.getId(),
+            session.getUserId(),
+            session.getFinancialAdvisor() != null ? session.getFinancialAdvisor().getId() : null,
+            session.getDate(),
+            session.getTime()
+    );
   }
 
   public static AdvisorySession toEntity(AdvisorySessionDTO dto, FinancialAdvisor advisor) {
     AdvisorySession session = new AdvisorySession();
-    session.setId(dto.getId());
-    session.setUserId(dto.getUserId());
+    session.setId(dto.id());
+    session.setUserId(dto.userId());
     session.setFinancialAdvisor(advisor);
-    session.setDate(dto.getDate());
-    session.setTime(dto.getTime());
+    session.setDate(dto.date());
+    session.setTime(dto.time());
     session.setStatus(RequestStatus.PENDING);
     return session;
   }

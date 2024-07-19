@@ -36,16 +36,19 @@ public class FinancialAdvisorServiceImplTest {
 
   @Test
   void testAddFinancialAdvisor() {
-    FinancialAdvisorDTO advisorDTO = new FinancialAdvisorDTO();
-    advisorDTO.setName("John Doe");
-    advisorDTO.setEmail("john.doe@example.com");
-    advisorDTO.setSpecialization(AdvisorSpecialization.ACCOUNTANT);
+    FinancialAdvisorDTO advisorDTO = new FinancialAdvisorDTO(
+            null,
+            "Ahmed Muhsin",
+            "Ahmed@example.com",
+            null,
+            AdvisorSpecialization.ACCOUNTANT
+    );
 
     FinancialAdvisor savedAdvisor = new FinancialAdvisor();
     savedAdvisor.setId(1L);
-    savedAdvisor.setName(advisorDTO.getName());
-    savedAdvisor.setEmail(advisorDTO.getEmail());
-    savedAdvisor.setSpecialization(advisorDTO.getSpecialization());
+    savedAdvisor.setName(advisorDTO.name());
+    savedAdvisor.setEmail(advisorDTO.email());
+    savedAdvisor.setSpecialization(advisorDTO.specialization());
 
     when(financialAdvisorRepository.save(any(FinancialAdvisor.class))).thenReturn(savedAdvisor);
 

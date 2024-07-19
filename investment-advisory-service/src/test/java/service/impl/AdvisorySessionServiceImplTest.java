@@ -48,25 +48,22 @@ public class AdvisorySessionServiceImplTest {
   @Test
   void testCreateAdvisorySession() {
     // Mocking the input advisory session request
-    AdvisorySessionDTO request = new AdvisorySessionDTO();
-    request.setUserId(1L);
-    request.setAdvisoryId(1L);
-    request.setDate(LocalDate.of(2024, 7, 20));
-    request.setTime(LocalTime.of(10, 0));
+    AdvisorySessionDTO request =
+            new AdvisorySessionDTO(1L, 1L, 1L, LocalDate.of(2024, 7, 20), LocalTime.of(10, 0));
 
     // Mocking the financial advisor repository response
     FinancialAdvisor advisor = new FinancialAdvisor();
     advisor.setId(1L);
     advisor.setName("John Doe");
-    when(financialAdvisorRepository.findById(request.getAdvisoryId())).thenReturn(Optional.of(advisor));
+    when(financialAdvisorRepository.findById(request.advisoryId())).thenReturn(Optional.of(advisor));
 
     // Mocking the advisory session repository save method
     AdvisorySession savedSession = new AdvisorySession();
     savedSession.setId(1L);
-    savedSession.setUserId(request.getUserId());
+    savedSession.setUserId(request.userId());
     savedSession.setFinancialAdvisor(advisor);
-    savedSession.setDate(request.getDate());
-    savedSession.setTime(request.getTime());
+    savedSession.setDate(request.date());
+    savedSession.setTime(request.time());
     savedSession.setStatus(RequestStatus.PENDING);
     when(advisorySessionRepository.save(any(AdvisorySession.class))).thenReturn(savedSession);
 
@@ -78,8 +75,8 @@ public class AdvisorySessionServiceImplTest {
 
     // Assertions
     assertNotNull(result);
-    assertEquals(request.getUserId(), result.getUserId());
-    assertEquals(advisor.getId(), result.getAdvisoryId());
+    assertEquals(request.userId(), result.userId());
+    assertEquals(advisor.getId(), result.advisoryId());
   }
 
   @Test
@@ -99,7 +96,7 @@ public class AdvisorySessionServiceImplTest {
     // Assertions
     assertNotNull(result);
     assertEquals(sessions.size(), result.size());
-    assertEquals(sessions.get(0).getDate(), result.get(0).getDate());
+    assertEquals(sessions.get(0).getDate(), result.get(0).date());
 //    assertEquals(sessions.get(1).get(), result.get(1).getStatus());
   }
 
@@ -125,7 +122,7 @@ public class AdvisorySessionServiceImplTest {
     // Assertions
     assertNotNull(result);
     assertEquals(sessions.size(), result.size());
-    assertEquals(sessions.get(0).getDate(), result.get(0).getDate());
+    assertEquals(sessions.get(0).getDate(), result.get(0).date());
 //    assertEquals(sessions.get(1).getStatus(), result.get(1).getStatus());
   }
 
@@ -148,18 +145,16 @@ public class AdvisorySessionServiceImplTest {
     when(advisorySessionRepository.save(any(AdvisorySession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     // Updated advisory session request
-    AdvisorySessionDTO updatedSession = new AdvisorySessionDTO();
-    updatedSession.setId(sessionId);
-    updatedSession.setUserId(userId);
-    updatedSession.setDate(LocalDate.of(2024, 7, 22));
-    updatedSession.setTime(LocalTime.of(12, 0));
+    AdvisorySessionDTO updatedSession =
+            new AdvisorySessionDTO(sessionId, userId, null, LocalDate.of(2024, 7, 22), LocalTime.of(12, 0));
+
 
     // Test the method
     advisorySessionService.updateAdvisorySession(updatedSession);
 
     // Assertions
-    assertEquals(updatedSession.getDate(), existingSession.getDate());
-    assertEquals(updatedSession.getTime(), existingSession.getTime());
+    assertEquals(updatedSession.date(), existingSession.getDate());
+    assertEquals(updatedSession.time(), existingSession.getTime());
     assertEquals(RequestStatus.RESCHEDULED, existingSession.getStatus());
   }
 
@@ -171,11 +166,8 @@ public class AdvisorySessionServiceImplTest {
     when(advisorySessionRepository.findById(sessionId)).thenReturn(Optional.empty());
 
     // Updated advisory session request
-    AdvisorySessionDTO updatedSession = new AdvisorySessionDTO();
-    updatedSession.setId(sessionId);
-    updatedSession.setUserId(1L);
-    updatedSession.setDate(LocalDate.of(2024, 7, 22));
-    updatedSession.setTime(LocalTime.of(12, 0));
+    AdvisorySessionDTO updatedSession =
+            new AdvisorySessionDTO(sessionId, 1L, 1L, LocalDate.of(2024, 7, 22), LocalTime.of(12, 0));
 
     // Test and assert AdvisorySessionNotFoundException
     AdvisorySessionNotFoundException exception = assertThrows(

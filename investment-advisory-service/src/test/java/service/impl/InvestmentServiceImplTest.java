@@ -48,18 +48,22 @@ public class InvestmentServiceImplTest {
 
   @Test
   void testCreateInvestment_Success() {
-    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse();
-    balanceCheckResponse.setSufficientFunds(true);
-    balanceCheckResponse.setCurrentBalance(1000.0);
+    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
+            true,
+            1000.0
+    );
 
     when(restTemplate.postForObject(anyString(), any(BalanceCheckRequest.class), eq(BalanceCheckResponse.class)))
             .thenReturn(balanceCheckResponse);
 
-    InvestmentDTO request = new InvestmentDTO();
-    request.setAccountId(1L);
-    request.setUserId(1L);
-    request.setInvestmentType(InvestmentType.STOCKS);
-    request.setAmount(500.0);
+    InvestmentDTO request = new InvestmentDTO(
+            1L,
+            1L,
+            1L,
+            InvestmentType.STOCKS,
+            500.0,
+            new Date()
+    );
 
     Investment investment = InvestmentsMapper.toEntity(request);
     investment.setId(1L);
@@ -67,34 +71,39 @@ public class InvestmentServiceImplTest {
     when(investmentRepository.save(any(Investment.class))).thenReturn(investment);
 
     CustomerServiceRequest serviceRequest = new CustomerServiceRequest();
-    serviceRequest.setUserId(request.getUserId());
+    serviceRequest.setUserId(request.userId());
     serviceRequest.setRequestType(RequestType.INVESTMENT);
-    serviceRequest.setDescription("Customer invested " + request.getAmount()
-            + "$ to " + request.getInvestmentType());
+    serviceRequest.setDescription("Customer invested " + request.amount()
+            + "$ to " + request.investmentType());
     when(customerRequestService.createRequest(any(CustomerServiceRequest.class))).thenReturn(serviceRequest);
 
     InvestmentDTO result = investmentService.createInvestment(request);
 
     assertNotNull(result);
-    assertEquals(investment.getId(), result.getId());
-    assertEquals(investment.getUserId(), result.getUserId());
-    assertEquals(investment.getInvestmentType(), result.getInvestmentType());
-    assertEquals(investment.getAmount(), result.getAmount());
+    assertEquals(investment.getId(), result.id());
+    assertEquals(investment.getUserId(), result.userId());
+    assertEquals(investment.getInvestmentType(), result.investmentType());
+    assertEquals(investment.getAmount(), result.amount());
   }
 
   @Test
   void testCreateInvestment_InsufficientFunds() {
-    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse();
-    balanceCheckResponse.setSufficientFunds(false);
+    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
+            false,
+            null
+    );
 
     when(restTemplate.postForObject(anyString(), any(BalanceCheckRequest.class), eq(BalanceCheckResponse.class)))
             .thenReturn(balanceCheckResponse);
 
-    InvestmentDTO request = new InvestmentDTO();
-    request.setAccountId(1L);
-    request.setUserId(1L);
-    request.setInvestmentType(InvestmentType.STOCKS);
-    request.setAmount(1500.0);
+    InvestmentDTO request = new InvestmentDTO(
+            1L,
+            1L,
+            1L,
+            InvestmentType.STOCKS,
+            1500.0,
+            new Date()
+    );
 
     assertThrows(NotSufficientFundsException.class, () -> investmentService.createInvestment(request));
   }
@@ -117,23 +126,26 @@ public class InvestmentServiceImplTest {
 
   @Test
   void testUpdateInvestment() {
-    InvestmentDTO request = new InvestmentDTO();
-    request.setId(1L);
-    request.setUserId(1L);
-    request.setInvestmentType(InvestmentType.STOCKS);
-    request.setAmount(800.0);
+    InvestmentDTO request = new InvestmentDTO(
+            1L,
+            1L,
+            1L,
+            InvestmentType.STOCKS,
+            800.0,
+            new Date()
+    );
 
     Investment existingInvestment = new Investment(1L, 1L, InvestmentType.STOCKS, 500.0, new Date());
     Investment updatedInvestment = InvestmentsMapper.toEntity(request);
 
-    when(investmentRepository.findById(request.getId())).thenReturn(java.util.Optional.of(existingInvestment));
+    when(investmentRepository.findById(request.id())).thenReturn(java.util.Optional.of(existingInvestment));
     when(investmentRepository.save(any(Investment.class))).thenReturn(updatedInvestment);
 
     CustomerServiceRequest serviceRequest = new CustomerServiceRequest();
-    serviceRequest.setUserId(request.getUserId());
+    serviceRequest.setUserId(request.userId());
     serviceRequest.setRequestType(RequestType.INVESTMENT);
-    serviceRequest.setDescription("Customer updated investment to " + request.getAmount()
-            + "$ in " + request.getInvestmentType());
+    serviceRequest.setDescription("Customer updated investment to " + request.amount()
+            + "$ in " + request.investmentType());
     when(customerRequestService.createRequest(any(CustomerServiceRequest.class))).thenReturn(serviceRequest);
 
     investmentService.updateInvestment(request);

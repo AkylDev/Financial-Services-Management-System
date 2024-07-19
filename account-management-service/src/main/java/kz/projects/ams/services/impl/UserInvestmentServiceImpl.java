@@ -39,17 +39,23 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
   private final AccountRepository accountRepository;
 
   @Override
-  public InvestmentResponse toInvest(InvestmentRequest request){
-    Optional<Account> accountOptional = accountRepository.findById(request.getAccountId());
+  public InvestmentResponse toInvest(InvestmentRequest request) {
+    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account not found!");
     }
 
     Long currentUserId = accountService.getCurrentSessionUser().getId();
-    request.setUserId(currentUserId);
+    request = new InvestmentRequest(
+            request.id(),
+            currentUserId,
+            request.accountId(),
+            request.investmentType(),
+            request.amount()
+    );
 
     Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(currentUserId)){
+    if (!account.getUser().getId().equals(currentUserId)) {
       throw new UnauthorizedException("You are not authorized to change this appointment");
     }
 
@@ -60,9 +66,10 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
               InvestmentResponse.class
       );
 
-      TransactionRequest transactionRequest = new TransactionRequest();
-      transactionRequest.setAccountId(request.getAccountId());
-      transactionRequest.setAmount(request.getAmount());
+      TransactionRequest transactionRequest = new TransactionRequest(
+              request.accountId(),
+              request.amount()
+      );
       transactionService.withdraw(transactionRequest);
 
       return response;
@@ -71,11 +78,17 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     }
   }
 
+
   @Override
   public void updateInvestment(Long id, InvestmentRequest request) {
     Long currentUserId = accountService.getCurrentSessionUser().getId();
-    request.setUserId(currentUserId);
-    request.setId(id);
+    request = new InvestmentRequest(
+            id,
+            currentUserId,
+            request.accountId(),
+            request.investmentType(),
+            request.amount()
+    );
 
     try {
       restTemplate.put(
@@ -122,17 +135,16 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
 
   @Override
   public BalanceCheckResponse checkBalance(BalanceCheckRequest request) {
-    Optional<Account> accountOptional = accountRepository.findById(request.getAccountId());
+    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account not found");
     }
 
     Account account = accountOptional.get();
-    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse();
-    balanceCheckResponse.setCurrentBalance(account.getBalance());
 
-    balanceCheckResponse.setSufficientFunds(account.getBalance() >= request.getAmount());
-
-    return balanceCheckResponse;
+    return new BalanceCheckResponse(
+            account.getBalance() >= request.amount(),
+            account.getBalance()
+    );
   }
 }

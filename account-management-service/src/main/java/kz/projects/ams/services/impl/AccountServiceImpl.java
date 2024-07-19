@@ -38,8 +38,8 @@ public class AccountServiceImpl implements AccountService {
   public AccountDTO createAccount(AccountDTO accountRequest) {
     Account account = new Account();
     account.setUser(getCurrentSessionUser());
-    account.setAccountType(accountRequest.getAccountType());
-    account.setBalance(accountRequest.getBalance());
+    account.setAccountType(accountRequest.accountType());
+    account.setBalance(accountRequest.balance());
 
     return accountMapper.toDto(accountRepository.save(account));
   }
@@ -68,8 +68,8 @@ public class AccountServiceImpl implements AccountService {
       throw new UnauthorizedException("You are not authorized to change this appointment");
     }
 
-    account.setAccountType(request.getAccountType());
-    account.setBalance(request.getBalance());
+    account.setAccountType(request.accountType());
+    account.setBalance(request.balance());
 
     return accountMapper.toDto(accountRepository.save(account));
   }

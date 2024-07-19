@@ -34,10 +34,10 @@ public class InvestmentServiceImpl implements InvestmentService {
 
   private CustomerServiceRequest customerInvestmentRequest(InvestmentDTO investment){
     CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
-    customerServiceRequest.setUserId(investment.getUserId());
+    customerServiceRequest.setUserId(investment.userId());
     customerServiceRequest.setRequestType(RequestType.INVESTMENT);
-    customerServiceRequest.setDescription("Customer invested " + investment.getAmount()
-            + "$ to " + investment.getInvestmentType());
+    customerServiceRequest.setDescription("Customer invested " + investment.amount()
+            + "$ to " + investment.investmentType());
 
     return customerServiceRequest;
   }
@@ -45,9 +45,10 @@ public class InvestmentServiceImpl implements InvestmentService {
   @Override
   public InvestmentDTO createInvestment(InvestmentDTO request) {
 
-    BalanceCheckRequest balanceCheckRequest = new BalanceCheckRequest();
-    balanceCheckRequest.setAccountId(request.getAccountId());
-    balanceCheckRequest.setAmount(request.getAmount());
+    BalanceCheckRequest balanceCheckRequest = new BalanceCheckRequest(
+            request.accountId(),
+            request.amount()
+    );
 
     try {
       BalanceCheckResponse response = restTemplate.postForObject(
@@ -56,7 +57,7 @@ public class InvestmentServiceImpl implements InvestmentService {
               BalanceCheckResponse.class
       );
 
-      if (response == null || !response.isSufficientFunds()) {
+      if (response == null || !response.sufficientFunds()) {
         throw new NotSufficientFundsException("Insufficient funds");
       }
 
@@ -82,17 +83,17 @@ public class InvestmentServiceImpl implements InvestmentService {
 
   @Override
   public void updateInvestment(InvestmentDTO request) {
-    Investment investment = investmentRepository.findById(request.getId())
+    Investment investment = investmentRepository.findById(request.id())
             .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
 
-    if (!investment.getUserId().equals(request.getUserId())){
+    if (!investment.getUserId().equals(request.userId())){
       throw new IllegalArgumentException("You are not allowed");
     }
 
-    investment.setInvestmentType(request.getInvestmentType());
+    investment.setInvestmentType(request.investmentType());
     investment.setDate(new Date());
-    investment.setAmount(request.getAmount());
-    investment.setUserId(request.getUserId());
+    investment.setAmount(request.amount());
+    investment.setUserId(request.userId());
 
     CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
     serviceRequest.setStatus(RequestStatus.CHANGED);

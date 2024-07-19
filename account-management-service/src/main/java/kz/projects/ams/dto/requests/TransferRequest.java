@@ -1,12 +1,8 @@
 package kz.projects.ams.dto.requests;
 
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-public class TransferRequest {
-  private Long fromAccount;
-  private Long toAccount;
-  private Double amount;
-}
+public record TransferRequest(
+        Long fromAccount,
+        Long toAccount,
+        Double amount
+) {}

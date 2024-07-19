@@ -58,10 +58,12 @@ class UserServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    userDTO = new UserDTO();
-    userDTO.setName("Test User");
-    userDTO.setEmail("test@example.com");
-    userDTO.setPassword("password");
+    userDTO = new UserDTO(
+            null, // Assuming ID is not set during setup
+            "Test User",
+            "test@example.com",
+            "password"
+    );
 
     user = new User();
     user.setName("Test User");
@@ -71,88 +73,91 @@ class UserServiceImplTest {
 
   @Test
   void testRegisterSuccess() {
-    when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
-    when(passwordEncoder.encode(userDTO.getPassword())).thenReturn("encodedPassword");
+    when(userRepository.findByEmail(userDTO.email())).thenReturn(Optional.empty());
+    when(passwordEncoder.encode(userDTO.password())).thenReturn("encodedPassword");
     when(permissionsRepository.findByRole("ROLE_USER")).thenReturn(null);
-    when(permissionsRepository.save(any(Permissions.class))).thenReturn(new Permissions(1L,"ROLE_USER"));
+    when(permissionsRepository.save(any(Permissions.class))).thenReturn(new Permissions(1L, "ROLE_USER"));
     when(userRepository.save(any(User.class))).thenReturn(user);
     when(userMapper.toDto(any(User.class))).thenReturn(userDTO);
 
     UserDTO registeredUser = userService.register(userDTO);
 
     assertNotNull(registeredUser);
-    assertEquals("Test User", registeredUser.getName());
-    assertEquals("test@example.com", registeredUser.getEmail());
+    assertEquals("Test User", registeredUser.name());
+    assertEquals("test@example.com", registeredUser.email());
     verify(userRepository, times(1)).save(any(User.class));
   }
 
   @Test
   void testRegisterExistingEmail() {
-    when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
+    when(userRepository.findByEmail(userDTO.email())).thenReturn(Optional.of(user));
 
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      userService.register(userDTO);
-    });
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.register(userDTO));
 
     assertEquals("User with this email already exists.", exception.getMessage());
     verify(userRepository, never()).save(any(User.class));
   }
 
+
   @Test
   void testLoginSuccess() {
-    LoginRequest loginRequest = new LoginRequest();
-    loginRequest.setEmail("test@example.com");
-    loginRequest.setPassword("password");
+    LoginRequest loginRequest = new LoginRequest(
+            "test@example.com",
+            "password"
+    );
 
     UserDetails userDetails = mock(UserDetails.class);
     when(userDetails.getPassword()).thenReturn("encodedPassword");
-    when(userDetailsService.loadUserByUsername(loginRequest.getEmail())).thenReturn(userDetails);
-    when(passwordEncoder.matches(loginRequest.getPassword(), userDetails.getPassword())).thenReturn(true);
+    when(userDetailsService.loadUserByUsername(loginRequest.email())).thenReturn(userDetails);
+    when(passwordEncoder.matches(loginRequest.password(), userDetails.getPassword())).thenReturn(true);
 
     UserDetails loggedInUser = userService.login(loginRequest);
 
     assertNotNull(loggedInUser);
-    verify(userDetailsService, times(1)).loadUserByUsername(loginRequest.getEmail());
+    verify(userDetailsService, times(1)).loadUserByUsername(loginRequest.email());
   }
 
   @Test
   void testLoginInvalidCredentials() {
-    LoginRequest loginRequest = new LoginRequest();
-    loginRequest.setEmail("test@example.com");
-    loginRequest.setPassword("wrongPassword");
+    LoginRequest loginRequest = new LoginRequest(
+            "test@example.com",
+            "wrongPassword"
+    );
 
     UserDetails userDetails = mock(UserDetails.class);
-    when(userDetailsService.loadUserByUsername(loginRequest.getEmail())).thenReturn(userDetails);
-    when(passwordEncoder.matches(loginRequest.getPassword(), userDetails.getPassword())).thenReturn(false);
+    when(userDetailsService.loadUserByUsername(loginRequest.email())).thenReturn(userDetails);
+    when(passwordEncoder.matches(loginRequest.password(), userDetails.getPassword())).thenReturn(false);
 
-    UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class, () -> {
-      userService.login(loginRequest);
-    });
+    UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class, () -> userService.login(loginRequest));
 
     assertEquals("Invalid credentials", exception.getMessage());
-    verify(userDetailsService, times(1)).loadUserByUsername(loginRequest.getEmail());
+    verify(userDetailsService, times(1)).loadUserByUsername(loginRequest.email());
   }
 
   @Test
   void testRegisterAsAdvisorSuccess() {
-    AdviserDTO adviserDTO = new AdviserDTO();
-    adviserDTO.setName("Advisor");
-    adviserDTO.setEmail("advisor@example.com");
-    adviserDTO.setPassword("password");
-    adviserDTO.setSpecialization(AdvisorSpecialization.ACCOUNTANT);
+    AdviserDTO adviserDTO = new AdviserDTO(
+            "Advisor",
+            "advisor@example.com",
+            "password",
+            AdvisorSpecialization.ACCOUNTANT
+    );
 
     User savedUser = new User();
-    savedUser.setName(adviserDTO.getName());
-    savedUser.setEmail(adviserDTO.getEmail());
+    savedUser.setName(adviserDTO.name());
+    savedUser.setEmail(adviserDTO.email());
     savedUser.setPassword("encodedPassword");
     savedUser.setPermissionList(Collections.singletonList(new Permissions(1L, "ROLE_ADVISOR")));
 
-    UserDTO userDTO = new UserDTO();
-    userDTO.setName(adviserDTO.getName());
-    userDTO.setEmail(adviserDTO.getEmail());
+    UserDTO userDTO = new UserDTO(
+            null, // Assuming ID is not set during setup
+            adviserDTO.name(),
+            adviserDTO.email(),
+            "password"
+    );
 
-    when(userRepository.findByEmail(adviserDTO.getEmail())).thenReturn(Optional.empty());
-    when(passwordEncoder.encode(adviserDTO.getPassword())).thenReturn("encodedPassword");
+    when(userRepository.findByEmail(adviserDTO.email())).thenReturn(Optional.empty());
+    when(passwordEncoder.encode(adviserDTO.password())).thenReturn("encodedPassword");
     when(permissionsRepository.findByRole("ROLE_ADVISOR")).thenReturn(null);
     when(permissionsRepository.save(any(Permissions.class))).thenReturn(new Permissions(1L, "ROLE_ADVISOR"));
     when(userRepository.save(any(User.class))).thenReturn(savedUser);
@@ -166,24 +171,23 @@ class UserServiceImplTest {
     UserDTO registeredAdvisor = userService.registerAsAdvisor(adviserDTO);
 
     assertNotNull(registeredAdvisor);
-    assertEquals("Advisor", registeredAdvisor.getName());
-    assertEquals("advisor@example.com", registeredAdvisor.getEmail());
+    assertEquals("Advisor", registeredAdvisor.name());
+    assertEquals("advisor@example.com", registeredAdvisor.email());
     verify(userRepository, times(1)).save(any(User.class));
   }
 
   @Test
   void testRegisterAsAdvisorExistingEmail() {
-    AdviserDTO adviserDTO = new AdviserDTO();
-    adviserDTO.setName("Advisor");
-    adviserDTO.setEmail("advisor@example.com");
-    adviserDTO.setPassword("password");
-    adviserDTO.setSpecialization(AdvisorSpecialization.ACCOUNTANT);
+    AdviserDTO adviserDTO = new AdviserDTO(
+            "Advisor",
+            "advisor@example.com",
+            "password",
+            AdvisorSpecialization.ACCOUNTANT
+    );
 
-    when(userRepository.findByEmail(adviserDTO.getEmail())).thenReturn(Optional.of(user));
+    when(userRepository.findByEmail(adviserDTO.email())).thenReturn(Optional.of(user));
 
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      userService.registerAsAdvisor(adviserDTO);
-    });
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.registerAsAdvisor(adviserDTO));
 
     assertEquals("User with this email already exists.", exception.getMessage());
     verify(userRepository, never()).save(any(User.class));

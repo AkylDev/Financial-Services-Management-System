@@ -12,21 +12,21 @@ public class InvestmentsMapper {
       return null;
     }
 
-    InvestmentDTO dto = new InvestmentDTO();
-    dto.setId(investment.getId());
-    dto.setUserId(investment.getUserId());
-    dto.setDate(investment.getDate());
-    dto.setAmount(investment.getAmount());
-    dto.setInvestmentType(investment.getInvestmentType());
-
-    return dto;
+    return new InvestmentDTO(
+            investment.getId(),
+            investment.getUserId(),
+            null,
+            investment.getInvestmentType(),
+            investment.getAmount(),
+            investment.getDate()
+    );
   }
 
   public static Investment toEntity(InvestmentDTO dto) {
     Investment investment = new Investment();
-    investment.setUserId(dto.getUserId());
-    investment.setAmount(dto.getAmount());
-    investment.setInvestmentType(dto.getInvestmentType());
+    investment.setUserId(dto.userId());
+    investment.setAmount(dto.amount());
+    investment.setInvestmentType(dto.investmentType());
     return investment;
   }
 

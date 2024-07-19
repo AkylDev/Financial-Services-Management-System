@@ -41,15 +41,15 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDTO register(UserDTO registerRequest) {
-    Optional<User> checkUser = userRepository.findByEmail(registerRequest.getEmail());
+    Optional<User> checkUser = userRepository.findByEmail(registerRequest.email());
     if (checkUser.isPresent()) {
       throw new IllegalArgumentException("User with this email already exists.");
     }
 
     User newUser = new User();
-    newUser.setName(registerRequest.getName());
-    newUser.setEmail(registerRequest.getEmail());
-    newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+    newUser.setName(registerRequest.name());
+    newUser.setEmail(registerRequest.email());
+    newUser.setPassword(passwordEncoder.encode(registerRequest.password()));
 
     Permissions defaultPermission = permissionsRepository.findByRole("ROLE_USER");
     if (defaultPermission == null) {
@@ -64,8 +64,8 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDetails login(LoginRequest request) {
-    UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-    if (passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
+    UserDetails userDetails = userDetailsService.loadUserByUsername(request.email());
+    if (passwordEncoder.matches(request.password(), userDetails.getPassword())) {
       UsernamePasswordAuthenticationToken authenticationToken =
               new UsernamePasswordAuthenticationToken(userDetails, null,
                       userDetails.getAuthorities());
@@ -78,15 +78,15 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDTO registerAsAdvisor(AdviserDTO adviser) {
-    Optional<User> checkUser = userRepository.findByEmail(adviser.getEmail());
+    Optional<User> checkUser = userRepository.findByEmail(adviser.email());
     if (checkUser.isPresent()) {
       throw new IllegalArgumentException("User with this email already exists.");
     }
 
     User newUser = new User();
-    newUser.setName(adviser.getName());
-    newUser.setEmail(adviser.getEmail());
-    newUser.setPassword(passwordEncoder.encode(adviser.getPassword()));
+    newUser.setName(adviser.name());
+    newUser.setEmail(adviser.email());
+    newUser.setPassword(passwordEncoder.encode(adviser.password()));
 
     Permissions defaultPermission = permissionsRepository.findByRole("ROLE_ADVISOR");
     if (defaultPermission == null) {

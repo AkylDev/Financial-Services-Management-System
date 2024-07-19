@@ -43,23 +43,28 @@ public class UserAdvisorySessionServiceImplTest {
     currentUser.setId(1L);
     when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
 
-    AdvisorySessionDTO request = new AdvisorySessionDTO();
-    request.setAdvisoryId(10L);
+    AdvisorySessionDTO request = new AdvisorySessionDTO(null, null, 10L, null, null);
 
-    when(restTemplate.postForObject(anyString(), any(AdvisorySessionDTO.class), eq(AdvisorySessionDTO.class)))
+    when(restTemplate.postForObject(
+            anyString(),
+            argThat((AdvisorySessionDTO dto) -> dto.advisoryId().equals(10L)),
+            eq(AdvisorySessionDTO.class)))
             .thenReturn(request);
 
     AdvisorySessionDTO result = advisorySessionService.orderAdvisorySession(request);
 
     verify(accountService).getCurrentSessionUser();
-    verify(restTemplate).postForObject(anyString(), eq(request), eq(AdvisorySessionDTO.class));
+    verify(restTemplate).postForObject(
+            anyString(),
+            argThat((AdvisorySessionDTO dto) -> dto.advisoryId().equals(10L)),
+            eq(AdvisorySessionDTO.class));
 
     assertNotNull(result);
     assertEquals(request, result);
-    assertEquals(request.getUserId(), result.getUserId());
-    assertEquals(request.getAdvisoryId(), result.getAdvisoryId());
-    assertEquals(request.getDate(), result.getDate());
-    assertEquals(request.getTime(), result.getTime());
+    assertEquals(request.userId(), result.userId());
+    assertEquals(request.advisoryId(), result.advisoryId());
+    assertEquals(request.date(), result.date());
+    assertEquals(request.time(), result.time());
   }
 
   @Test(expected = AdvisorySessionOrderException.class)
@@ -68,8 +73,8 @@ public class UserAdvisorySessionServiceImplTest {
     currentUser.setId(1L);
     when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
 
-    AdvisorySessionDTO request = new AdvisorySessionDTO();
-    request.setAdvisoryId(10L);
+    AdvisorySessionDTO request = new AdvisorySessionDTO(null, null, 10L, null, null);
+
 
     when(restTemplate.postForObject(anyString(), any(AdvisorySessionDTO.class), eq(AdvisorySessionDTO.class)))
             .thenThrow(new RestClientException("Simulated RestClientException"));
@@ -142,7 +147,7 @@ public class UserAdvisorySessionServiceImplTest {
     when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AdvisorySessionDTO request = new AdvisorySessionDTO(1L, 1L, 2L, LocalDate.now(), LocalTime.of(9, 0));
-    advisorySessionService.rescheduleAdvisorySession(request.getId(), request);
+    advisorySessionService.rescheduleAdvisorySession(request.id(), request);
 
     verify(restTemplate).put(
             eq("http://localhost:8092/advisory-sessions"),

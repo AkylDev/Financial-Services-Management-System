@@ -7,15 +7,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
   public UserDTO toDto(User user) {
-    if (user == null){
+    if (user == null) {
       return null;
     }
 
-    UserDTO userDTO = new UserDTO();
-    userDTO.setId(user.getId());
-    userDTO.setName(user.getName());
-    userDTO.setEmail(user.getEmail());
-
-    return userDTO;
+    return new UserDTO(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            null // Assuming password is not included in DTO for security reasons
+    );
   }
 }
+

@@ -31,11 +31,11 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
 
   private CustomerServiceRequest customerAdvisorySessionRequest(AdvisorySessionDTO request, String advisorName){
     CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
-    customerServiceRequest.setUserId(request.getUserId());
+    customerServiceRequest.setUserId(request.userId());
     customerServiceRequest.setRequestType(RequestType.ADVISORY);
     customerServiceRequest.setDescription("Customer set up advisory session with " +
-            advisorName + " on " + request.getDate() +
-            " at " + request.getTime());
+            advisorName + " on " + request.date() +
+            " at " + request.time());
 
     return customerServiceRequest;
   }
@@ -43,7 +43,7 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   @Override
   public AdvisorySessionDTO createAdvisorySession(AdvisorySessionDTO request) {
 
-    FinancialAdvisor advisor = financialAdvisorRepository.findById(request.getAdvisoryId())
+    FinancialAdvisor advisor = financialAdvisorRepository.findById(request.advisoryId())
             .orElseThrow(() -> new FinancialAdvisorNotFoundException("Advisor not found"));
 
     AdvisorySession session = AdvisorySessionMapper.toEntity(request, advisor);
@@ -79,16 +79,16 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   @Override
   public void updateAdvisorySession(AdvisorySessionDTO request) {
 
-    AdvisorySession session = advisorySessionRepository.findById(request.getId())
+    AdvisorySession session = advisorySessionRepository.findById(request.id())
             .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
 
-    if (!session.getUserId().equals(request.getUserId())){
+    if (!session.getUserId().equals(request.userId())){
       throw new IllegalArgumentException("You are not allowed");
     }
 
-    session.setUserId(request.getUserId());
-    session.setDate(request.getDate());
-    session.setTime(request.getTime());
+    session.setUserId(request.userId());
+    session.setDate(request.date());
+    session.setTime(request.time());
     session.setStatus(RequestStatus.RESCHEDULED);
 
     CustomerServiceRequest serviceRequest = customerAdvisorySessionRequest(request, session.getFinancialAdvisor().getName());

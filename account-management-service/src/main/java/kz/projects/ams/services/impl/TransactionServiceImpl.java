@@ -35,7 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
 
   @Override
   public TransactionDTO deposit(TransactionRequest request) {
-    Optional<Account> accountOptional = accountRepository.findById(request.getAccountId());
+    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
 
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account Not Found!");
@@ -47,13 +47,13 @@ public class TransactionServiceImpl implements TransactionService {
       throw new IllegalArgumentException("You are not allowed");
     }
 
-    account.setBalance(account.getBalance() + request.getAmount());
+    account.setBalance(account.getBalance() + request.amount());
     accountRepository.save(account);
 
     Transaction transaction = new Transaction();
     transaction.setAccount(account);
     transaction.setType(TransactionType.DEPOSIT);
-    transaction.setAmount(request.getAmount());
+    transaction.setAmount(request.amount());
     transaction.setDate(new Date());
 
     Transaction savedTransaction = transactionRepository.save(transaction);
@@ -62,7 +62,7 @@ public class TransactionServiceImpl implements TransactionService {
 
   @Override
   public TransactionDTO withdraw(TransactionRequest request) {
-    Optional<Account> accountOptional = accountRepository.findById(request.getAccountId());
+    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
 
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account Not Found!");
@@ -74,13 +74,13 @@ public class TransactionServiceImpl implements TransactionService {
       throw new IllegalArgumentException("You are not allowed");
     }
 
-    account.setBalance(account.getBalance() - request.getAmount());
+    account.setBalance(account.getBalance() - request.amount());
     accountRepository.save(account);
 
     Transaction transaction = new Transaction();
     transaction.setAccount(account);
     transaction.setType(TransactionType.WITHDRAWAL);
-    transaction.setAmount(request.getAmount());
+    transaction.setAmount(request.amount());
     transaction.setDate(new Date());
 
     Transaction savedTransaction = transactionRepository.save(transaction);
@@ -89,8 +89,8 @@ public class TransactionServiceImpl implements TransactionService {
 
   @Override
   public TransactionDTO transfer(TransferRequest request) {
-    Optional<Account> fromAccountOptional = accountRepository.findById(request.getFromAccount());
-    Optional<Account> toAccountOptional = accountRepository.findById(request.getToAccount());
+    Optional<Account> fromAccountOptional = accountRepository.findById(request.fromAccount());
+    Optional<Account> toAccountOptional = accountRepository.findById(request.toAccount());
 
     if (fromAccountOptional.isEmpty() || toAccountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account not found");
@@ -102,10 +102,10 @@ public class TransactionServiceImpl implements TransactionService {
       throw new IllegalArgumentException("You are not allowed");
     }
 
-    fromAccount.setBalance(fromAccount.getBalance() - request.getAmount());
+    fromAccount.setBalance(fromAccount.getBalance() - request.amount());
 
     Account toAccount = toAccountOptional.get();
-    toAccount.setBalance(toAccount.getBalance() + request.getAmount());
+    toAccount.setBalance(toAccount.getBalance() + request.amount());
 
     accountRepository.save(fromAccount);
     accountRepository.save(toAccount);
@@ -113,7 +113,7 @@ public class TransactionServiceImpl implements TransactionService {
     Transaction transaction = new Transaction();
     transaction.setAccount(fromAccount);
     transaction.setType(TransactionType.TRANSFER);
-    transaction.setAmount(request.getAmount());
+    transaction.setAmount(request.amount());
     transaction.setDate(new Date());
 
     Transaction savedTransaction = transactionRepository.save(transaction);

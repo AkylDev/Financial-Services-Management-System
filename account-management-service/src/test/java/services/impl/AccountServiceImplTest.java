@@ -55,10 +55,12 @@ public class AccountServiceImplTest {
 
   @Test
   public void testCreateAccount() {
-    AccountDTO accountDTO = new AccountDTO();
-    accountDTO.setEmail("test@example.com");
-    accountDTO.setAccountType(AccountType.SAVINGS);
-    accountDTO.setBalance(100.0);
+    AccountDTO accountDTO = new AccountDTO(
+            null,
+            "test@example.com",
+            AccountType.SAVINGS,
+            100.0
+    );
 
     Account account = new Account();
     account.setId(1L);
@@ -68,9 +70,9 @@ public class AccountServiceImplTest {
     AccountDTO createdAccount = accountService.createAccount(accountDTO);
 
     assertNotNull(createdAccount);
-    assertEquals(accountDTO.getEmail(), createdAccount.getEmail());
-    assertEquals(accountDTO.getAccountType(), createdAccount.getAccountType());
-    assertEquals(accountDTO.getBalance(), createdAccount.getBalance());
+    assertEquals(accountDTO.email(), createdAccount.email());
+    assertEquals(accountDTO.accountType(), createdAccount.accountType());
+    assertEquals(accountDTO.balance(), createdAccount.balance());
   }
 
   @Test
@@ -87,9 +89,12 @@ public class AccountServiceImplTest {
 
   @Test
   public void testUpdateAccount() {
-    AccountDTO request = new AccountDTO();
-    request.setAccountType(AccountType.INCOME);
-    request.setBalance(500.0);
+    AccountDTO request = new AccountDTO(
+            null,
+            null,
+            AccountType.INCOME,
+            500.0
+    );
 
     User currentUser = new User();
     currentUser.setId(1L);
@@ -109,18 +114,20 @@ public class AccountServiceImplTest {
     AccountDTO updatedAccount = accountService.updateAccount(accountId, request);
 
     assertNotNull(updatedAccount);
-    assertEquals(request.getId(), updatedAccount.getId());
-    assertEquals(request.getAccountType(), updatedAccount.getAccountType());
-    assertEquals(request.getBalance(), updatedAccount.getBalance());
+    assertEquals(request.id(), updatedAccount.id());
+    assertEquals(request.accountType(), updatedAccount.accountType());
+    assertEquals(request.balance(), updatedAccount.balance());
   }
 
   @Test(expected = UserAccountNotFoundException.class)
   public void testUpdateAccountNotFound() {
     Long nonExistentAccountId = 999L;
-    AccountDTO accountDTO = new AccountDTO();
-    accountDTO.setId(nonExistentAccountId);
-    accountDTO.setAccountType(AccountType.INCOME);
-    accountDTO.setBalance(500.0);
+    AccountDTO accountDTO = new AccountDTO(
+            nonExistentAccountId,
+            "email",
+            AccountType.INCOME,
+            500.0
+    );
 
     Mockito.when(accountRepository.findById(nonExistentAccountId)).thenReturn(Optional.empty());
 
@@ -130,9 +137,12 @@ public class AccountServiceImplTest {
   @Test(expected = UnauthorizedException.class)
   public void testUpdateAccountUnauthorized() {
     Long accountId = 1L;
-    AccountDTO accountDTO = new AccountDTO();
-    accountDTO.setAccountType(AccountType.INCOME);
-    accountDTO.setBalance(500.0);
+    AccountDTO accountDTO = new AccountDTO(
+            null,
+            "email",
+            AccountType.INCOME,
+            500.0
+    );
 
     User currentUser = new User();
     currentUser.setId(1L);

@@ -1,11 +1,8 @@
 package kz.projects.ams.dto.requests;
 
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-public class TransactionRequest {
-  private Long accountId;
-  private Double amount;
-}
+public record TransactionRequest(
+        Long accountId,
+        Double amount
+) {}
+
