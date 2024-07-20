@@ -42,6 +42,14 @@ public class InvestmentServiceImpl implements InvestmentService {
     return customerServiceRequest;
   }
 
+  /**
+   * Создает инвестицию, проверяя наличие достаточных средств на счете.
+   *
+   * @param request объект {@link InvestmentDTO}, содержащий информацию о инвестиции.
+   * @return объект {@link InvestmentDTO}, который был сохранен в базе данных.
+   * @throws NotSufficientFundsException если на счете недостаточно средств для инвестиции.
+   * @throws CheckBalanceException если произошла ошибка при проверке баланса или создании инвестиции.
+   */
   @Override
   public InvestmentDTO createInvestment(InvestmentDTO request) {
 
@@ -76,17 +84,30 @@ public class InvestmentServiceImpl implements InvestmentService {
     }
   }
 
+  /**
+   * Возвращает список всех инвестиций для указанного пользователя.
+   *
+   * @param userId идентификатор пользователя, для которого нужно получить инвестиции.
+   * @return список объектов {@link Investment}, связанных с указанным пользователем.
+   */
   @Override
   public List<Investment> getAllInvestments(Long userId) {
     return investmentRepository.findAllByUserId(userId);
   }
 
+  /**
+   * Обновляет информацию об инвестиции.
+   *
+   * @param request объект {@link InvestmentDTO}, содержащий обновленную информацию о инвестиции.
+   * @throws InvestmentNotFoundException если инвестиция с указанным ID не найдена.
+   * @throws IllegalArgumentException если пользователь не имеет прав для обновления этой инвестиции.
+   */
   @Override
   public void updateInvestment(InvestmentDTO request) {
     Investment investment = investmentRepository.findById(request.id())
             .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
 
-    if (!investment.getUserId().equals(request.userId())){
+    if (!investment.getUserId().equals(request.userId())) {
       throw new IllegalArgumentException("You are not allowed");
     }
 
@@ -102,6 +123,14 @@ public class InvestmentServiceImpl implements InvestmentService {
     investmentRepository.save(investment);
   }
 
+  /**
+   * Удаляет инвестицию и создает запрос на отмену инвестиции.
+   *
+   * @param id идентификатор инвестиции, которую нужно удалить.
+   * @param userId идентификатор пользователя, который запрашивает удаление.
+   * @throws InvestmentNotFoundException если инвестиция с указанным ID не найдена.
+   * @throws IllegalArgumentException если пользователь не имеет прав для удаления этой инвестиции.
+   */
   @Override
   public void deleteInvestment(Long id, Long userId) {
     Investment investment = investmentRepository.findById(id)

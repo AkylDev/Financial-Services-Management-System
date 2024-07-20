@@ -1,5 +1,6 @@
 package kz.projects.ias.service.impl;
 
+import jakarta.transaction.Transactional;
 import kz.projects.ias.dto.AdvisorySessionDTO;
 import kz.projects.ias.exceptions.AdvisorySessionNotFoundException;
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
@@ -40,6 +41,15 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
     return customerServiceRequest;
   }
 
+  /**
+   * Создает новую консультацию и сохраняет ее в базе данных.
+   * Также создает запрос на обслуживание для консультации.
+   *
+   * @param request объект {@link AdvisorySessionDTO} с информацией о консультации.
+   * @return объект {@link AdvisorySessionDTO} с информацией о сохраненной консультации.
+   * @throws FinancialAdvisorNotFoundException если финансовый консультант не найден.
+   */
+  @Transactional
   @Override
   public AdvisorySessionDTO createAdvisorySession(AdvisorySessionDTO request) {
 
@@ -57,6 +67,12 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
     return AdvisorySessionMapper.toDto(savedSession);
   }
 
+  /**
+   * Возвращает список всех консультаций для указанного пользователя.
+   *
+   * @param userId идентификатор пользователя.
+   * @return список объектов {@link AdvisorySessionDTO} с консультациями пользователя.
+   */
   @Override
   public List<AdvisorySessionDTO> getAdvisorySessions(Long userId) {
     List<AdvisorySession> sessions = advisorySessionRepository.findAllByUserId(userId);
@@ -65,6 +81,13 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
             .collect(Collectors.toList());
   }
 
+  /**
+   * Возвращает список всех консультаций для указанного финансового консультанта.
+   *
+   * @param email адрес электронной почты финансового консультанта.
+   * @return список объектов {@link AdvisorySessionDTO} с консультациями консультанта.
+   * @throws FinancialAdvisorNotFoundException если финансовый консультант не найден.
+   */
   @Override
   public List<AdvisorySessionDTO> getFinancialAdviserSessions(String email) {
     FinancialAdvisor advisor = financialAdvisorRepository.findByEmail(email)
@@ -76,6 +99,15 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
             .collect(Collectors.toList());
   }
 
+  /**
+   * Обновляет информацию о консультации.
+   * Также создает запрос на обслуживание для обновленной консультации.
+   *
+   * @param request объект {@link AdvisorySessionDTO} с обновленной информацией о консультации.
+   * @throws AdvisorySessionNotFoundException если консультация с указанным ID не найдена.
+   * @throws IllegalArgumentException если пользователь не имеет прав на обновление консультации.
+   */
+  @Transactional
   @Override
   public void updateAdvisorySession(AdvisorySessionDTO request) {
 
@@ -98,6 +130,15 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
     advisorySessionRepository.save(session);
   }
 
+  /**
+   * Удаляет консультацию по указанному ID и создает запрос на обслуживание для удаления.
+   *
+   * @param id идентификатор консультации.
+   * @param userId идентификатор пользователя, инициировавшего удаление.
+   * @throws AdvisorySessionNotFoundException если консультация с указанным ID не найдена.
+   * @throws IllegalArgumentException если пользователь не имеет прав на удаление консультации.
+   */
+  @Transactional
   @Override
   public void deleteAdvisorySession(Long id, Long userId) {
     AdvisorySession session = advisorySessionRepository.findById(id)
