@@ -163,10 +163,24 @@ public class UserAdvisorySessionServiceImplTest {
     when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
 
     Long advisorySessionId = 1L;
+
+    ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    when(restTemplate.exchange(
+            eq("http://localhost:8092/advisory-sessions/{id}?userId={userId}"),
+            eq(HttpMethod.DELETE),
+            isNull(),
+            eq(Void.class),
+            eq(advisorySessionId),
+            eq(currentUser.getId())
+    )).thenReturn(responseEntity);
+
     advisorySessionService.deleteAdvisorySession(advisorySessionId);
 
-    verify(restTemplate).delete(
+    verify(restTemplate).exchange(
             eq("http://localhost:8092/advisory-sessions/{id}?userId={userId}"),
+            eq(HttpMethod.DELETE),
+            isNull(),
+            eq(Void.class),
             eq(advisorySessionId),
             eq(currentUser.getId())
     );

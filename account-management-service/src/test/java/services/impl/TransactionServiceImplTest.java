@@ -3,6 +3,7 @@ package services.impl;
 import kz.projects.ams.dto.TransactionDTO;
 import kz.projects.ams.dto.requests.TransactionRequest;
 import kz.projects.ams.dto.requests.TransferRequest;
+import kz.projects.ams.exceptions.UnauthorizedException;
 import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.mapper.TransactionMapper;
 import kz.projects.ams.models.Account;
@@ -98,7 +99,7 @@ public class TransactionServiceImplTest {
     transactionService.deposit(request);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = UnauthorizedException.class)
   public void testDepositUnauthorized() {
     TransactionRequest request = new TransactionRequest(
             999L,
@@ -174,7 +175,7 @@ public class TransactionServiceImplTest {
     transactionService.withdraw(request);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = UnauthorizedException.class)
   public void testWithdrawUnauthorized() {
     TransactionRequest request = new TransactionRequest(
             999L,
@@ -257,7 +258,7 @@ public class TransactionServiceImplTest {
     transactionService.transfer(request);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = UnauthorizedException.class)
   public void testTransferUnauthorized() {
     TransferRequest request = new TransferRequest(
             1L,

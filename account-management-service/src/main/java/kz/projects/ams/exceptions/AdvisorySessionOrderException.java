@@ -8,4 +8,8 @@ public class AdvisorySessionOrderException extends RuntimeException {
   public AdvisorySessionOrderException(String message, Throwable cause) {
     super(message, cause);
   }
+
+  public AdvisorySessionOrderException(String message) {
+    super(message);
+  }
 }

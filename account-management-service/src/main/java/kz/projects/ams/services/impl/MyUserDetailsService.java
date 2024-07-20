@@ -10,11 +10,23 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Реализация {@link UserDetailsService} для загрузки деталей пользователя по имени пользователя.
+ * Использует {@link UserRepository} для поиска пользователя по email.
+ */
 @Service
 public class MyUserDetailsService implements UserDetailsService {
   @Autowired
   private UserRepository userRepository;
 
+  /**
+   * Загружает {@link UserDetails} по указанному имени пользователя.
+   * Если пользователь не найден, выбрасывает {@link UsernameNotFoundException}.
+   *
+   * @param username имя пользователя (email)
+   * @return {@link UserDetails} объект, представляющий найденного пользователя
+   * @throws UsernameNotFoundException если пользователь с указанным email не найден
+   */
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     Optional<User> userOptional = userRepository.findByEmail(username);

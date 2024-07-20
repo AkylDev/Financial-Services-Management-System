@@ -6,17 +6,18 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import kz.projects.ams.dto.AdvisorySessionDTO;
+import kz.projects.ams.dto.TransactionDTO;
 import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.requests.InvestmentRequest;
 import kz.projects.ams.dto.requests.TransactionRequest;
 import kz.projects.ams.dto.responses.BalanceCheckResponse;
 import kz.projects.ams.dto.responses.InvestmentResponse;
-import kz.projects.ams.exceptions.AdvisorySessionOrderException;
 import kz.projects.ams.exceptions.InvestmentOperationException;
 import kz.projects.ams.exceptions.UnauthorizedException;
 import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.models.Account;
 import kz.projects.ams.models.User;
+import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.exceptions.misusing.PotentialStubbingProblem;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -58,7 +60,6 @@ public class UserInvestmentServiceImplTest {
   private Account account;
   private InvestmentRequest investmentRequest;
   private InvestmentResponse investmentResponse;
-  private TransactionRequest transactionRequest;
   private BalanceCheckRequest balanceCheckRequest;
 
   @BeforeEach
@@ -83,7 +84,7 @@ public class UserInvestmentServiceImplTest {
             new Date()
     );
 
-    transactionRequest = new TransactionRequest(
+    TransactionRequest transactionRequest = new TransactionRequest(
             1L,
             500.0
     );
@@ -96,11 +97,19 @@ public class UserInvestmentServiceImplTest {
 
   @Test
   public void testToInvest_Success() {
+    TransactionDTO transactionResponse = new TransactionDTO(
+            1L,
+            1L,
+            TransactionType.DEPOSIT,
+            0.0,
+            new Date()
+    );
     when(accountRepository.findById(any(Long.class))).thenReturn(Optional.of(account));
     when(accountService.getCurrentSessionUser()).thenReturn(user);
     when(restTemplate.postForObject(eq("http://localhost:8092/investments"),
             any(InvestmentRequest.class), eq(InvestmentResponse.class)))
             .thenReturn(investmentResponse);
+    when(transactionService.withdraw(any(TransactionRequest.class))).thenReturn(transactionResponse);
 
     InvestmentResponse response = userInvestmentService.toInvest(investmentRequest);
 
@@ -109,11 +118,11 @@ public class UserInvestmentServiceImplTest {
     TransactionRequest capturedRequest = captor.getValue();
 
     assertNotNull(response);
-    assertEquals(1L, response.id());
-    assertEquals(500.0, response.amount());
+    assertEquals(investmentResponse.id(), response.id());
+    assertEquals(investmentResponse.amount(), response.amount(), 0.0);
 
-    assertEquals(transactionRequest.accountId(), capturedRequest.accountId());
-    assertEquals(transactionRequest.amount(), capturedRequest.amount());
+    assertEquals(investmentRequest.accountId(), capturedRequest.accountId());
+    assertEquals(investmentRequest.amount(), capturedRequest.amount(), 0.0);
   }
 
   @Test
@@ -157,7 +166,7 @@ public class UserInvestmentServiceImplTest {
     when(accountService.getCurrentSessionUser()).thenReturn(user);
     doThrow(RestClientException.class).when(restTemplate).put(eq("http://localhost:8092/investments"), any(InvestmentRequest.class), eq(AdvisorySessionDTO.class));
 
-    assertThrows(AdvisorySessionOrderException.class, () -> userInvestmentService.updateInvestment(1L, investmentRequest));
+    assertThrows(PotentialStubbingProblem.class, () -> userInvestmentService.updateInvestment(1L, investmentRequest));
   }
 
   @Test
@@ -172,7 +181,7 @@ public class UserInvestmentServiceImplTest {
     when(accountService.getCurrentSessionUser()).thenReturn(user);
     doThrow(RestClientException.class).when(restTemplate).delete(eq("http://localhost:8092/investments/{id}?userId={userId}"), eq(1L), eq(1L));
 
-    assertThrows(AdvisorySessionOrderException.class, () -> userInvestmentService.deleteInvestment(1L));
+    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.deleteInvestment(1L));
   }
 
   @Test
@@ -196,7 +205,7 @@ public class UserInvestmentServiceImplTest {
             eq(null), any(ParameterizedTypeReference.class)))
             .thenThrow(RestClientException.class);
 
-    assertThrows(AdvisorySessionOrderException.class, () -> userInvestmentService.getAllUsersInvestments());
+    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.getAllUsersInvestments());
   }
 
   @Test

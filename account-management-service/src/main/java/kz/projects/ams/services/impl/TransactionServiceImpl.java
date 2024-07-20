@@ -3,6 +3,8 @@ package kz.projects.ams.services.impl;
 import kz.projects.ams.dto.TransactionDTO;
 import kz.projects.ams.dto.requests.TransactionRequest;
 import kz.projects.ams.dto.requests.TransferRequest;
+import kz.projects.ams.exceptions.InsufficientFundsException;
+import kz.projects.ams.exceptions.UnauthorizedException;
 import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.mapper.TransactionMapper;
 import kz.projects.ams.models.Account;
@@ -21,6 +23,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация {@link TransactionService} для управления транзакциями.
+ * Обрабатывает депозиты, снятие средств, переводы и получение списка транзакций для текущего пользователя.
+ */
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
@@ -33,18 +39,29 @@ public class TransactionServiceImpl implements TransactionService {
 
   private final AccountService accountService;
 
+  /**
+   * Выполняет операцию пополнения счета.
+   * Проверяет наличие счета, соответствие пользователя и обновляет баланс.
+   *
+   * @param request запрос на пополнение счета
+   * @return {@link TransactionDTO} объект, представляющий выполненную транзакцию
+   * @throws UserAccountNotFoundException если указанный счет не найден
+   * @throws IllegalArgumentException если текущий пользователь не имеет доступа к указанному счету
+   */
   @Override
   public TransactionDTO deposit(TransactionRequest request) {
-    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
+    if (request.amount() <= 0) {
+      throw new IllegalArgumentException("Deposit amount must be greater than zero");
+    }
 
+    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account Not Found!");
     }
 
     Account account = accountOptional.get();
-
     if (!account.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
-      throw new IllegalArgumentException("You are not allowed");
+      throw new UnauthorizedException("You are not allowed");
     }
 
     account.setBalance(account.getBalance() + request.amount());
@@ -60,18 +77,33 @@ public class TransactionServiceImpl implements TransactionService {
     return transactionMapper.toDto(savedTransaction);
   }
 
+  /**
+   * Выполняет операцию снятия средств со счета.
+   * Проверяет наличие счета, соответствие пользователя и обновляет баланс.
+   *
+   * @param request запрос на снятие средств
+   * @return {@link TransactionDTO} объект, представляющий выполненную транзакцию
+   * @throws UserAccountNotFoundException если указанный счет не найден
+   * @throws IllegalArgumentException если текущий пользователь не имеет доступа к указанному счету
+   */
   @Override
   public TransactionDTO withdraw(TransactionRequest request) {
-    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
+    if (request.amount() <= 0) {
+      throw new IllegalArgumentException("Withdrawal amount must be greater than zero");
+    }
 
+    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account Not Found!");
     }
 
     Account account = accountOptional.get();
-
     if (!account.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
-      throw new IllegalArgumentException("You are not allowed");
+      throw new UnauthorizedException("You are not allowed");
+    }
+
+    if (account.getBalance() < request.amount()) {
+      throw new InsufficientFundsException("Insufficient funds");
     }
 
     account.setBalance(account.getBalance() - request.amount());
@@ -87,8 +119,21 @@ public class TransactionServiceImpl implements TransactionService {
     return transactionMapper.toDto(savedTransaction);
   }
 
+  /**
+   * Выполняет перевод средств между двумя счетами.
+   * Проверяет наличие обоих счетов, соответствие пользователя и обновляет балансы.
+   *
+   * @param request запрос на перевод средств
+   * @return {@link TransactionDTO} объект, представляющий выполненную транзакцию
+   * @throws UserAccountNotFoundException если один из указанных счетов не найден
+   * @throws IllegalArgumentException если текущий пользователь не имеет доступа к исходному счету
+   */
   @Override
   public TransactionDTO transfer(TransferRequest request) {
+    if (request.amount() <= 0) {
+      throw new IllegalArgumentException("Transfer amount must be greater than zero");
+    }
+
     Optional<Account> fromAccountOptional = accountRepository.findById(request.fromAccount());
     Optional<Account> toAccountOptional = accountRepository.findById(request.toAccount());
 
@@ -97,14 +142,17 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     Account fromAccount = fromAccountOptional.get();
+    Account toAccount = toAccountOptional.get();
 
     if (!fromAccount.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
-      throw new IllegalArgumentException("You are not allowed");
+      throw new UnauthorizedException("You are not allowed");
+    }
+
+    if (fromAccount.getBalance() < request.amount()) {
+      throw new InsufficientFundsException("Insufficient funds");
     }
 
     fromAccount.setBalance(fromAccount.getBalance() - request.amount());
-
-    Account toAccount = toAccountOptional.get();
     toAccount.setBalance(toAccount.getBalance() + request.amount());
 
     accountRepository.save(fromAccount);
@@ -120,6 +168,11 @@ public class TransactionServiceImpl implements TransactionService {
     return transactionMapper.toDto(savedTransaction);
   }
 
+  /**
+   * Получает список транзакций для текущего пользователя.
+   *
+   * @return список {@link TransactionDTO} объектов, представляющих транзакции текущего пользователя
+   */
   @Override
   public List<TransactionDTO> getTransactions() {
     User currentUser = accountService.getCurrentSessionUser();

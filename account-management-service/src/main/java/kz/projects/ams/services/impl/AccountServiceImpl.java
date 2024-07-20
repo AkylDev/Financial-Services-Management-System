@@ -18,6 +18,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация {@link AccountService} для управления аккаунтами.
+ * Обрабатывает создание, поиск, обновление и удаление аккаунтов для текущего пользователя.
+ */
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
@@ -26,6 +30,11 @@ public class AccountServiceImpl implements AccountService {
 
   private final AccountMapper accountMapper;
 
+  /**
+   * Получает текущего авторизованного пользователя из контекста безопасности.
+   *
+   * @return {@link User} текущий авторизованный пользователь, или {@code null}, если нет активной авторизации
+   */
   public User getCurrentSessionUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
@@ -34,6 +43,12 @@ public class AccountServiceImpl implements AccountService {
     return null;
   }
 
+  /**
+   * Создает новый аккаунт для текущего пользователя.
+   *
+   * @param accountRequest {@link AccountDTO} объект, содержащий данные для создания аккаунта
+   * @return {@link AccountDTO} объект, представляющий созданный аккаунт
+   */
   @Override
   public AccountDTO createAccount(AccountDTO accountRequest) {
     Account account = new Account();
@@ -44,6 +59,11 @@ public class AccountServiceImpl implements AccountService {
     return accountMapper.toDto(accountRepository.save(account));
   }
 
+  /**
+   * Находит все аккаунты текущего пользователя.
+   *
+   * @return список {@link AccountDTO} объектов, представляющих аккаунты текущего пользователя
+   */
   @Override
   public List<AccountDTO> findAccountsByUserId() {
     User currentUser = getCurrentSessionUser();
@@ -53,19 +73,30 @@ public class AccountServiceImpl implements AccountService {
             .collect(Collectors.toList());
   }
 
-
+  /**
+   * Обновляет данные аккаунта с указанным идентификатором.
+   * Проверяет права текущего пользователя на изменение аккаунта.
+   *
+   * @param id идентификатор аккаунта
+   * @param request {@link AccountDTO} объект, содержащий обновленные данные аккаунта
+   * @return {@link AccountDTO} объект, представляющий обновленный аккаунт
+   * @throws UserAccountNotFoundException если аккаунт с указанным идентификатором не найден
+   * @throws UnauthorizedException если текущий пользователь не авторизован для изменения аккаунта
+   */
   @Override
   public AccountDTO updateAccount(Long id, AccountDTO request) {
-    Optional<Account> accountOptional = accountRepository.findById(id);
+    if (request.balance() < 0) {
+      throw new IllegalArgumentException("Balance cannot be negative");
+    }
 
+    Optional<Account> accountOptional = accountRepository.findById(id);
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account not found");
     }
 
     Account account = accountOptional.get();
-
     if (!account.getUser().getId().equals(getCurrentSessionUser().getId())){
-      throw new UnauthorizedException("You are not authorized to change this appointment");
+      throw new UnauthorizedException("You are not authorized to change this account");
     }
 
     account.setAccountType(request.accountType());
@@ -74,18 +105,24 @@ public class AccountServiceImpl implements AccountService {
     return accountMapper.toDto(accountRepository.save(account));
   }
 
+  /**
+   * Удаляет аккаунт с указанным идентификатором.
+   * Проверяет права текущего пользователя на удаление аккаунта.
+   *
+   * @param id идентификатор аккаунта
+   * @throws UserAccountNotFoundException если аккаунт с указанным идентификатором не найден
+   * @throws UnauthorizedException если текущий пользователь не авторизован для удаления аккаунта
+   */
   @Override
   public void deleteAccount(Long id) {
     Optional<Account> accountOptional = accountRepository.findById(id);
-
     if (accountOptional.isEmpty()){
       throw new UserAccountNotFoundException("Account not found");
     }
 
     Account account = accountOptional.get();
-
     if (!account.getUser().getId().equals(getCurrentSessionUser().getId())){
-      throw new UnauthorizedException("You are not authorized to change this appointment");
+      throw new UnauthorizedException("You are not authorized to delete this account");
     }
 
     accountRepository.deleteById(id);
