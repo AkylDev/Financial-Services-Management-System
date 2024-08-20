@@ -11,8 +11,10 @@ import kz.projects.ams.repositories.PermissionsRepository;
 import kz.projects.ams.repositories.UserRepository;
 import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -140,5 +142,19 @@ public class UserServiceImpl implements UserService {
     }
 
     return userMapper.toDto(userRepository.save(newUser));
+  }
+
+  /**
+   * Получает текущего авторизованного пользователя из контекста безопасности.
+   *
+   * @return {@link User} текущий авторизованный пользователь, или {@code null}, если нет активной авторизации
+   */
+  @Override
+  public User getCurrentSessionUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
+      return (User) authentication.getPrincipal();
+    }
+    return null;
   }
 }

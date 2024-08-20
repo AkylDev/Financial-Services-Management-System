@@ -13,8 +13,8 @@ import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.models.User;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.repositories.TransactionRepository;
-import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;
+import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,7 @@ public class TransactionServiceImpl implements TransactionService {
 
   private final TransactionMapper transactionMapper;
 
-  private final AccountService accountService;
+  private final UserService userService;
 
   /**
    * Выполняет операцию пополнения счета.
@@ -60,7 +60,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
+    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
       throw new UnauthorizedException("You are not allowed");
     }
 
@@ -98,7 +98,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
+    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
       throw new UnauthorizedException("You are not allowed");
     }
 
@@ -144,7 +144,7 @@ public class TransactionServiceImpl implements TransactionService {
     Account fromAccount = fromAccountOptional.get();
     Account toAccount = toAccountOptional.get();
 
-    if (!fromAccount.getUser().getId().equals(accountService.getCurrentSessionUser().getId())){
+    if (!fromAccount.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
       throw new UnauthorizedException("You are not allowed");
     }
 
@@ -175,7 +175,7 @@ public class TransactionServiceImpl implements TransactionService {
    */
   @Override
   public List<TransactionDTO> getTransactions() {
-    User currentUser = accountService.getCurrentSessionUser();
+    User currentUser = userService.getCurrentSessionUser();
     List<Transaction> transactions = transactionRepository.findAllByUserId(currentUser.getId());
     return transactions.stream()
             .map(transactionMapper::toDto)

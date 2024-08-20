@@ -2,8 +2,8 @@ package kz.projects.ams.services.impl;
 
 import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.exceptions.AdvisorySessionOrderException;
-import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.UserAdvisorySessionService;
+import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -25,7 +25,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
 
   private final RestTemplate restTemplate;
 
-  private final AccountService accountService;
+  private final UserService userService;
 
   /**
    * Заказывает консультационную сессию для текущего пользователя.
@@ -36,7 +36,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
    */
   @Override
   public AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request) {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
     request = new AdvisorySessionDTO(
             request.id(),
             currentUserId,
@@ -68,7 +68,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
    */
   @Override
   public List<AdvisorySessionDTO> getAdvisorySessionsPlanned() {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
 
     try {
       ResponseEntity<List<AdvisorySessionDTO>> response = restTemplate.exchange(
@@ -94,7 +94,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
    */
   @Override
   public List<AdvisorySessionDTO> getAdvisersSessions() {
-    String email = accountService.getCurrentSessionUser().getEmail();
+    String email = userService.getCurrentSessionUser().getEmail();
     try {
       ResponseEntity<List<AdvisorySessionDTO>> response = restTemplate.exchange(
               "http://localhost:8092/advisory-sessions/advisers?email=" + email,
@@ -120,7 +120,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
    */
   @Override
   public void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request) {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
     request = new AdvisorySessionDTO(
             id,
             currentUserId,
@@ -148,7 +148,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
    */
   @Override
   public void deleteAdvisorySession(Long id) {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
     try {
       ResponseEntity<Void> response = restTemplate.exchange(
               "http://localhost:8092/advisory-sessions/{id}?userId={userId}",

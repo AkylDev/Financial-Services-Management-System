@@ -19,8 +19,8 @@ import kz.projects.ams.models.Account;
 import kz.projects.ams.models.User;
 import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.repositories.AccountRepository;
-import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;
+import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.UserInvestmentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ public class UserInvestmentServiceImplTest {
   private RestTemplate restTemplate;
 
   @Mock
-  private AccountService accountService;
+  private UserService userService;
 
   @Mock
   private TransactionService transactionService;
@@ -84,11 +84,6 @@ public class UserInvestmentServiceImplTest {
             new Date()
     );
 
-    TransactionRequest transactionRequest = new TransactionRequest(
-            1L,
-            500.0
-    );
-
     balanceCheckRequest = new BalanceCheckRequest(
             1L,
             500.0
@@ -105,7 +100,7 @@ public class UserInvestmentServiceImplTest {
             new Date()
     );
     when(accountRepository.findById(any(Long.class))).thenReturn(Optional.of(account));
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
     when(restTemplate.postForObject(eq("http://localhost:8092/investments"),
             any(InvestmentRequest.class), eq(InvestmentResponse.class)))
             .thenReturn(investmentResponse);
@@ -139,7 +134,7 @@ public class UserInvestmentServiceImplTest {
     account.setUser(anotherUser);
 
     when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
 
     assertThrows(UnauthorizedException.class, () -> userInvestmentService.toInvest(investmentRequest));
   }
@@ -147,7 +142,7 @@ public class UserInvestmentServiceImplTest {
   @Test
   public void testToInvest_RestClientException() {
     when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
     when(restTemplate.postForObject(eq("http://localhost:8092/investments"), any(InvestmentRequest.class), eq(InvestmentResponse.class)))
             .thenThrow(RestClientException.class);
 
@@ -156,14 +151,14 @@ public class UserInvestmentServiceImplTest {
 
   @Test
   public void testUpdateInvestment_Success() {
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
 
     assertDoesNotThrow(() -> userInvestmentService.updateInvestment(1L, investmentRequest));
   }
 
   @Test
   public void testUpdateInvestment_RestClientException() {
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
     doThrow(RestClientException.class).when(restTemplate).put(eq("http://localhost:8092/investments"), any(InvestmentRequest.class), eq(AdvisorySessionDTO.class));
 
     assertThrows(PotentialStubbingProblem.class, () -> userInvestmentService.updateInvestment(1L, investmentRequest));
@@ -171,14 +166,14 @@ public class UserInvestmentServiceImplTest {
 
   @Test
   public void testDeleteInvestment_Success() {
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
 
     assertDoesNotThrow(() -> userInvestmentService.deleteInvestment(1L));
   }
 
   @Test
   public void testDeleteInvestment_RestClientException() {
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
     doThrow(RestClientException.class).when(restTemplate).delete(eq("http://localhost:8092/investments/{id}?userId={userId}"), eq(1L), eq(1L));
 
     assertThrows(InvestmentOperationException.class, () -> userInvestmentService.deleteInvestment(1L));
@@ -186,7 +181,7 @@ public class UserInvestmentServiceImplTest {
 
   @Test
   public void testGetAllUsersInvestments_Success() {
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
     ResponseEntity<List<InvestmentResponse>> responseEntity = ResponseEntity.ok(Collections.singletonList(investmentResponse));
     when(restTemplate.exchange(eq("http://localhost:8092/investments?userId=1"), eq(HttpMethod.GET), eq(null),
             any(ParameterizedTypeReference.class)))
@@ -200,7 +195,7 @@ public class UserInvestmentServiceImplTest {
 
   @Test
   public void testGetAllUsersInvestments_RestClientException() {
-    when(accountService.getCurrentSessionUser()).thenReturn(user);
+    when(userService.getCurrentSessionUser()).thenReturn(user);
     when(restTemplate.exchange(eq("http://localhost:8092/investments?userId=1"), eq(HttpMethod.GET),
             eq(null), any(ParameterizedTypeReference.class)))
             .thenThrow(RestClientException.class);

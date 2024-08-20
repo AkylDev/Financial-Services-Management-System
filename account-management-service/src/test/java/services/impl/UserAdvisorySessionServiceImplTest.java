@@ -1,6 +1,7 @@
 package services.impl;
 
 import kz.projects.ams.exceptions.AdvisorySessionOrderException;
+import kz.projects.ams.services.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -17,7 +18,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.models.User;
-import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.impl.UserAdvisorySessionServiceImpl;
 
 import java.time.LocalDate;
@@ -32,7 +32,7 @@ public class UserAdvisorySessionServiceImplTest {
   private RestTemplate restTemplate;
 
   @Mock
-  private AccountService accountService;
+  private UserService userService;
 
   @InjectMocks
   private UserAdvisorySessionServiceImpl advisorySessionService;
@@ -41,7 +41,7 @@ public class UserAdvisorySessionServiceImplTest {
   public void testOrderAdvisorySession_Success() {
     User currentUser = new User();
     currentUser.setId(1L);
-    when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AdvisorySessionDTO request = new AdvisorySessionDTO(null, null, 10L, null, null);
 
@@ -53,7 +53,7 @@ public class UserAdvisorySessionServiceImplTest {
 
     AdvisorySessionDTO result = advisorySessionService.orderAdvisorySession(request);
 
-    verify(accountService).getCurrentSessionUser();
+    verify(userService).getCurrentSessionUser();
     verify(restTemplate).postForObject(
             anyString(),
             argThat((AdvisorySessionDTO dto) -> dto.advisoryId().equals(10L)),
@@ -71,7 +71,7 @@ public class UserAdvisorySessionServiceImplTest {
   public void testOrderAdvisorySession_RestClientException() {
     User currentUser = new User();
     currentUser.setId(1L);
-    when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AdvisorySessionDTO request = new AdvisorySessionDTO(null, null, 10L, null, null);
 
@@ -86,7 +86,7 @@ public class UserAdvisorySessionServiceImplTest {
   public void testGetAdvisorySessionsPlanned_Success() {
     User currentUser = new User();
     currentUser.setId(1L);
-    when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     List<AdvisorySessionDTO> mockSessions = Arrays.asList(
             new AdvisorySessionDTO(1L, 1L, 2L, LocalDate.now(), LocalTime.of(9, 0)),
@@ -115,7 +115,7 @@ public class UserAdvisorySessionServiceImplTest {
   public void testGetAdvisersSessions_Success() {
     User currentUser = new User();
     currentUser.setEmail("test@example.com");
-    when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     List<AdvisorySessionDTO> mockSessions = Arrays.asList(
             new AdvisorySessionDTO(1L, 1L, 2L, LocalDate.now(), LocalTime.of(9, 0)),
@@ -144,7 +144,7 @@ public class UserAdvisorySessionServiceImplTest {
   public void testRescheduleAdvisorySession_Success() {
     User currentUser = new User();
     currentUser.setId(1L);
-    when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AdvisorySessionDTO request = new AdvisorySessionDTO(1L, 1L, 2L, LocalDate.now(), LocalTime.of(9, 0));
     advisorySessionService.rescheduleAdvisorySession(request.id(), request);
@@ -160,7 +160,7 @@ public class UserAdvisorySessionServiceImplTest {
   public void testDeleteAdvisorySession_Success() {
     User currentUser = new User();
     currentUser.setId(1L);
-    when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     Long advisorySessionId = 1L;
 

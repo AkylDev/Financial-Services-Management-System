@@ -11,9 +11,9 @@ import kz.projects.ams.dto.requests.InvestmentRequest;
 import kz.projects.ams.dto.responses.InvestmentResponse;
 import kz.projects.ams.models.Account;
 import kz.projects.ams.repositories.AccountRepository;
-import kz.projects.ams.services.AccountService;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserInvestmentService;
+import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -36,7 +36,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
 
   private final RestTemplate restTemplate;
 
-  private final AccountService accountService;
+  private final UserService userService;
 
   private final TransactionService transactionService;
 
@@ -58,7 +58,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
       throw new UserAccountNotFoundException("Account not found!");
     }
 
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
     request = new InvestmentRequest(
             request.id(),
             currentUserId,
@@ -107,7 +107,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
    */
   @Override
   public void updateInvestment(Long id, InvestmentRequest request) {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
     request = new InvestmentRequest(
             id,
             currentUserId,
@@ -135,7 +135,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
    */
   @Override
   public void deleteInvestment(Long id) {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
     try {
       restTemplate.delete(
               "http://localhost:8092/investments/{id}?userId={userId}",
@@ -154,7 +154,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
    */
   @Override
   public List<InvestmentResponse> getAllUsersInvestments() {
-    Long currentUserId = accountService.getCurrentSessionUser().getId();
+    Long currentUserId = userService.getCurrentSessionUser().getId();
 
     try {
       ResponseEntity<List<InvestmentResponse>> response = restTemplate.exchange(

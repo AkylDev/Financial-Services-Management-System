@@ -8,10 +8,8 @@ import kz.projects.ams.models.Account;
 import kz.projects.ams.models.User;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.AccountService;
+import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,18 +28,7 @@ public class AccountServiceImpl implements AccountService {
 
   private final AccountMapper accountMapper;
 
-  /**
-   * Получает текущего авторизованного пользователя из контекста безопасности.
-   *
-   * @return {@link User} текущий авторизованный пользователь, или {@code null}, если нет активной авторизации
-   */
-  public User getCurrentSessionUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
-      return (User) authentication.getPrincipal();
-    }
-    return null;
-  }
+  private final UserService userService;
 
   /**
    * Создает новый аккаунт для текущего пользователя.
@@ -52,7 +39,7 @@ public class AccountServiceImpl implements AccountService {
   @Override
   public AccountDTO createAccount(AccountDTO accountRequest) {
     Account account = new Account();
-    account.setUser(getCurrentSessionUser());
+    account.setUser(userService.getCurrentSessionUser());
     account.setAccountType(accountRequest.accountType());
     account.setBalance(accountRequest.balance());
 
@@ -66,7 +53,7 @@ public class AccountServiceImpl implements AccountService {
    */
   @Override
   public List<AccountDTO> findAccountsByUserId() {
-    User currentUser = getCurrentSessionUser();
+    User currentUser = userService.getCurrentSessionUser();
     List<Account> accounts = accountRepository.findAllByUser(currentUser);
     return accounts.stream()
             .map(accountMapper::toDto)
@@ -95,7 +82,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(getCurrentSessionUser().getId())){
+    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
       throw new UnauthorizedException("You are not authorized to change this account");
     }
 
@@ -121,7 +108,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(getCurrentSessionUser().getId())){
+    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
       throw new UnauthorizedException("You are not authorized to delete this account");
     }
 

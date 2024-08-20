@@ -8,6 +8,7 @@ import kz.projects.ams.models.Account;
 import kz.projects.ams.models.User;
 import kz.projects.ams.models.enums.AccountType;
 import kz.projects.ams.repositories.AccountRepository;
+import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.AccountServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +42,9 @@ public class AccountServiceImplTest {
   @Mock
   private SecurityContext securityContext;
 
+  @Mock
+  private UserService userService;
+
   @InjectMocks
   private AccountServiceImpl accountService;
 
@@ -48,8 +52,8 @@ public class AccountServiceImplTest {
   public void setup() {
     User currentUser = new User();
     currentUser.setId(1L);
-    Mockito.when(authentication.getPrincipal()).thenReturn(currentUser);
-    Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+    Mockito.lenient().when(authentication.getPrincipal()).thenReturn(currentUser);
+    Mockito.lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
     SecurityContextHolder.setContext(securityContext);
   }
 
@@ -110,6 +114,7 @@ public class AccountServiceImplTest {
     Mockito.when(accountRepository.findById(accountId)).thenReturn(Optional.of(existingAccount));
     Mockito.when(accountRepository.save(Mockito.any(Account.class))).thenReturn(existingAccount);
     Mockito.when(accountMapper.toDto(Mockito.any(Account.class))).thenReturn(request);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AccountDTO updatedAccount = accountService.updateAccount(accountId, request);
 
@@ -158,7 +163,7 @@ public class AccountServiceImplTest {
     existingAccount.setBalance(300.0);
 
     Mockito.when(accountRepository.findById(accountId)).thenReturn(Optional.of(existingAccount));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     accountService.updateAccount(accountId, accountDTO);
   }
@@ -176,7 +181,7 @@ public class AccountServiceImplTest {
     existingAccount.setBalance(100.0);
 
     Mockito.when(accountRepository.findById(accountId)).thenReturn(Optional.of(existingAccount));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     accountService.deleteAccount(accountId);
 
@@ -209,7 +214,7 @@ public class AccountServiceImplTest {
     existingAccount.setBalance(100.0);
 
     Mockito.when(accountRepository.findById(accountId)).thenReturn(Optional.of(existingAccount));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     accountService.deleteAccount(accountId);
   }

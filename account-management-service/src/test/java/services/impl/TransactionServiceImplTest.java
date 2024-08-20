@@ -12,7 +12,7 @@ import kz.projects.ams.models.User;
 import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.repositories.TransactionRepository;
-import kz.projects.ams.services.AccountService;
+import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.TransactionServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +42,7 @@ public class TransactionServiceImplTest {
   private TransactionMapper transactionMapper;
 
   @Mock
-  private AccountService accountService;
+  private UserService userService;
 
   @InjectMocks
   private TransactionServiceImpl transactionService;
@@ -74,7 +74,7 @@ public class TransactionServiceImplTest {
     );
 
     Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.save(Mockito.any(Transaction.class))).thenReturn(transaction);
     Mockito.when(transactionMapper.toDto(transaction)).thenReturn(transactionDTO);
 
@@ -118,7 +118,7 @@ public class TransactionServiceImplTest {
     account.setBalance(500.0);
 
     Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     transactionService.deposit(request);
   }
@@ -150,7 +150,7 @@ public class TransactionServiceImplTest {
     );
 
     Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.save(Mockito.any(Transaction.class))).thenReturn(transaction);
     Mockito.when(transactionMapper.toDto(transaction)).thenReturn(transactionDTO);
 
@@ -194,7 +194,7 @@ public class TransactionServiceImplTest {
     account.setBalance(500.0);
 
     Mockito.when(accountRepository.findById(request.accountId())).thenReturn(Optional.of(account));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     transactionService.withdraw(request);
   }
@@ -231,7 +231,7 @@ public class TransactionServiceImplTest {
 
     Mockito.when(accountRepository.findById(request.fromAccount())).thenReturn(Optional.of(fromAccount));
     Mockito.when(accountRepository.findById(request.toAccount())).thenReturn(Optional.of(toAccount));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.save(Mockito.any(Transaction.class))).thenReturn(transaction);
     Mockito.when(transactionMapper.toDto(transaction)).thenReturn(transactionDTO);
 
@@ -283,7 +283,7 @@ public class TransactionServiceImplTest {
 
     Mockito.when(accountRepository.findById(request.fromAccount())).thenReturn(Optional.of(fromAccount));
     Mockito.when(accountRepository.findById(request.toAccount())).thenReturn(Optional.of(toAccount));
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     transactionService.transfer(request);
   }
@@ -308,7 +308,7 @@ public class TransactionServiceImplTest {
             new Date()
     );
 
-    Mockito.when(accountService.getCurrentSessionUser()).thenReturn(currentUser);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
     Mockito.when(transactionRepository.findAllByUserId(currentUser.getId())).thenReturn(transactions);
     Mockito.when(transactionMapper.toDto(transaction)).thenReturn(transactionDTO);
 
