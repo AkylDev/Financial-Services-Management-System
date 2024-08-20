@@ -15,7 +15,7 @@ import java.util.Optional;
  * Использует {@link UserRepository} для поиска пользователя по email.
  */
 @Service
-public class MyUserDetailsService implements UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
   @Autowired
   private UserRepository userRepository;
 

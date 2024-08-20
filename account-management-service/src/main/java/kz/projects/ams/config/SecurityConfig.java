@@ -1,6 +1,5 @@
 package kz.projects.ams.config;
 
-import kz.projects.ams.services.impl.MyUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,9 +20,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
-  @Bean
-  public UserDetailsService userService(){
-    return new MyUserDetailsService();
+
+  private final UserDetailsService userDetailsService;
+
+  public SecurityConfig(UserDetailsService userDetailsService) {
+    this.userDetailsService = userDetailsService;
   }
 
   @Bean
@@ -31,7 +32,7 @@ public class SecurityConfig {
 
     AuthenticationManagerBuilder builder =
             http.getSharedObject(AuthenticationManagerBuilder.class);
-    builder.userDetailsService(userService()).passwordEncoder(bCryptPasswordEncoder());
+    builder.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder());
 
     http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->

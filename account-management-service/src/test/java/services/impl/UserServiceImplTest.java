@@ -9,7 +9,7 @@ import kz.projects.ams.models.User;
 import kz.projects.ams.models.enums.AdvisorSpecialization;
 import kz.projects.ams.repositories.PermissionsRepository;
 import kz.projects.ams.repositories.UserRepository;
-import kz.projects.ams.services.impl.MyUserDetailsService;
+import kz.projects.ams.services.impl.CustomUserDetailsService;
 import kz.projects.ams.services.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class UserServiceImplTest {
   private PasswordEncoder passwordEncoder;
 
   @Mock
-  private MyUserDetailsService userDetailsService;
+  private CustomUserDetailsService userDetailsService;
 
   @Mock
   private UserMapper userMapper;
