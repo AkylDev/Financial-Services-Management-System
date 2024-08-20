@@ -14,5 +14,10 @@ public interface AccountService {
 
   void deleteAccount(Long id);
 
+  /*
+  * It's quite debatable to work with User in any form within AccountService, 
+  * as it violates the Single Responsibility Principle (the first principle of SOLID). 
+  * It would be better to move the retrieval of the current user session to UserService.
+  */
   User getCurrentSessionUser();
 }
