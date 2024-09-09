@@ -16,8 +16,8 @@ import kz.projects.ias.service.CustomerRequestService;
 import kz.projects.ias.service.InvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Date;
 import java.util.List;
@@ -28,7 +28,7 @@ public class InvestmentServiceImpl implements InvestmentService {
 
   private final InvestmentRepository investmentRepository;
 
-  private final RestTemplate restTemplate;
+  private final WebClient.Builder webClientBuilder;
 
   private final CustomerRequestService customerRequestService;
 
@@ -45,7 +45,7 @@ public class InvestmentServiceImpl implements InvestmentService {
   /**
    * Создает инвестицию, проверяя наличие достаточных средств на счете.
    *
-   * @param request объект {@link InvestmentDTO}, содержащий информацию о инвестиции.
+   * @param request объект {@link InvestmentDTO}, содержащий информацию об инвестиции.
    * @return объект {@link InvestmentDTO}, который был сохранен в базе данных.
    * @throws NotSufficientFundsException если на счете недостаточно средств для инвестиции.
    * @throws CheckBalanceException если произошла ошибка при проверке баланса или создании инвестиции.
@@ -59,11 +59,13 @@ public class InvestmentServiceImpl implements InvestmentService {
     );
 
     try {
-      BalanceCheckResponse response = restTemplate.postForObject(
-              "http://localhost:8091/check-balance",
-              balanceCheckRequest,
-              BalanceCheckResponse.class
-      );
+      BalanceCheckResponse response = webClientBuilder.build()
+              .post()
+              .uri("http://localhost:8091/check-balance")
+              .bodyValue(balanceCheckRequest)
+              .retrieve()
+              .bodyToMono(BalanceCheckResponse.class)
+              .block();
 
       if (response == null || !response.sufficientFunds()) {
         throw new NotSufficientFundsException("Insufficient funds");
@@ -79,7 +81,7 @@ public class InvestmentServiceImpl implements InvestmentService {
       Investment savedInvestment = investmentRepository.save(investment);
 
       return InvestmentsMapper.toDto(savedInvestment);
-    } catch (RestClientException e) {
+    } catch (WebClientResponseException e) {
       throw new CheckBalanceException("Failed to check balance or create investment", e);
     }
   }
@@ -98,7 +100,7 @@ public class InvestmentServiceImpl implements InvestmentService {
   /**
    * Обновляет информацию об инвестиции.
    *
-   * @param request объект {@link InvestmentDTO}, содержащий обновленную информацию о инвестиции.
+   * @param request объект {@link InvestmentDTO}, содержащий обновленную информацию об инвестиции.
    * @throws InvestmentNotFoundException если инвестиция с указанным ID не найдена.
    * @throws IllegalArgumentException если пользователь не имеет прав для обновления этой инвестиции.
    */

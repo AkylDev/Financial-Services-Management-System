@@ -11,6 +11,7 @@ import kz.projects.ams.repositories.PermissionsRepository;
 import kz.projects.ams.repositories.UserRepository;
 import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,8 +21,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
   private final UserMapper userMapper;
 
-  private final RestTemplate restTemplate;
+  private final WebClient.Builder webClientBuilder;
 
   /**
    * Регистрирует нового пользователя.
@@ -129,15 +130,19 @@ public class UserServiceImpl implements UserService {
     newUser.setPermissionList(Collections.singletonList(defaultPermission));
 
     try {
-      AdviserDTO response = restTemplate.postForObject(
-              "http://localhost:8092/financial-advisors",
-              adviser,
-              AdviserDTO.class
-      );
+      AdviserDTO response = webClientBuilder.build()
+              .post()
+              .uri("http://localhost:8092/financial-advisors")
+              .bodyValue(adviser)
+              .retrieve()
+              .bodyToMono(AdviserDTO.class)
+              .block();
+
       if (response == null) {
-        throw new RestClientException("Failed to get advisory sessions");
+        throw new WebClientResponseException("Failed to get advisory sessions", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "", null, null, null);
       }
-    } catch (RestClientException e) {
+    } catch (WebClientResponseException e) {
       throw new InternalException("Failed to get advisory sessions");
     }
 

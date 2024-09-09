@@ -15,26 +15,23 @@ import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserInvestmentService;
 import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
  * Реализация {@link UserInvestmentService} для управления инвестициями пользователей.
- * Сервис взаимодействует с внешним сервисом для обработки инвестиционных запросов через {@link RestTemplate}.
+ * Сервис взаимодействует с внешним сервисом для обработки инвестиционных запросов через {@link WebClient}.
  */
 @Service
 @RequiredArgsConstructor
 public class UserInvestmentServiceImpl implements UserInvestmentService {
 
-  private final RestTemplate restTemplate;
+  private final WebClient.Builder webClientBuilder;
 
   private final UserService userService;
 
@@ -73,13 +70,16 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     }
 
     try {
-      InvestmentResponse response = restTemplate.postForObject(
-              "http://localhost:8092/investments",
-              request,
-              InvestmentResponse.class
-      );
+      InvestmentResponse response = webClientBuilder.build()
+              .post()
+              .uri("http://localhost:8092/investments")
+              .bodyValue(request)
+              .retrieve()
+              .bodyToMono(InvestmentResponse.class)
+              .block();
       if (response == null) {
-        throw new InvestmentOperationException("Failed to process investment");
+        throw new WebClientResponseException("Failed due to investment process", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "", null, null, null);
       }
 
       TransactionRequest transactionRequest = new TransactionRequest(
@@ -93,7 +93,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
       }
 
       return response;
-    } catch (RestClientException e) {
+    } catch (WebClientResponseException e) {
       throw new InvestmentOperationException("Failed to process investment", e);
     }
   }
@@ -117,12 +117,14 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     );
 
     try {
-      restTemplate.put(
-              "http://localhost:8092/investments",
-              request,
-              InvestmentResponse.class
-      );
-    } catch (RestClientException e) {
+      webClientBuilder.build()
+              .put()
+              .uri("http://localhost:8092/investments")
+              .bodyValue(request)
+              .retrieve()
+              .toBodilessEntity()
+              .block();
+    } catch (WebClientResponseException e) {
       throw new InvestmentOperationException("Failed to update the investment", e);
     }
   }
@@ -137,11 +139,19 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
   public void deleteInvestment(Long id) {
     Long currentUserId = userService.getCurrentSessionUser().getId();
     try {
-      restTemplate.delete(
-              "http://localhost:8092/investments/{id}?userId={userId}",
-              id, currentUserId
-      );
-    } catch (RestClientException e) {
+      webClientBuilder.build()
+              .delete()
+              .uri(uriBuilder -> uriBuilder
+                      .scheme("http")
+                      .host("localhost")
+                      .port(8092)
+                      .path("/investments/{id}")
+                      .queryParam("userId", currentUserId)
+                      .build(id))
+              .retrieve()
+              .toBodilessEntity()
+              .block();
+    } catch (WebClientResponseException e) {
       throw new InvestmentOperationException("Failed to delete the investment", e);
     }
   }
@@ -157,17 +167,26 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     Long currentUserId = userService.getCurrentSessionUser().getId();
 
     try {
-      ResponseEntity<List<InvestmentResponse>> response = restTemplate.exchange(
-              "http://localhost:8092/investments?userId=" + currentUserId,
-              HttpMethod.GET,
-              null,
-              new ParameterizedTypeReference<>() {}
-      );
-      if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+      List<InvestmentResponse> investments = webClientBuilder.build()
+              .get()
+              .uri(uriBuilder -> uriBuilder
+                      .scheme("http")
+                      .host("localhost")
+                      .port(8092)
+                      .path("/investments")
+                      .queryParam("userId", currentUserId)
+                      .build())
+              .retrieve()
+              .bodyToFlux(InvestmentResponse.class)
+              .collectList()
+              .block();
+
+      if (investments == null) {
         throw new InvestmentOperationException("Failed to get investments");
       }
-      return response.getBody();
-    } catch (RestClientException e) {
+
+      return investments;
+    } catch (WebClientResponseException e) {
       throw new InvestmentOperationException("Failed to get investments", e);
     }
   }

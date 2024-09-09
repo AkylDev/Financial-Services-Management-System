@@ -5,25 +5,21 @@ import kz.projects.ams.exceptions.AdvisorySessionOrderException;
 import kz.projects.ams.services.UserAdvisorySessionService;
 import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.List;
 
 /**
  * Реализация {@link UserAdvisorySessionService} для управления консультационными сессиями пользователей.
- * Сервис взаимодействует с внешним сервисом консультационных сессий через {@link RestTemplate}.
+ * Сервис взаимодействует с внешним сервисом консультационных сессий через {@link WebClient}.
  */
 @Service
 @RequiredArgsConstructor
 public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionService {
 
-  private final RestTemplate restTemplate;
+  private final WebClient.Builder webClientBuilder;
 
   private final UserService userService;
 
@@ -46,16 +42,18 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
     );
 
     try {
-      AdvisorySessionDTO response = restTemplate.postForObject(
-              "http://localhost:8092/advisory-sessions",
-              request,
-              AdvisorySessionDTO.class
-      );
+      AdvisorySessionDTO response = webClientBuilder.build()
+              .post()
+              .uri("http://localhost:8092/advisory-sessions")
+              .bodyValue(request)
+              .retrieve()
+              .bodyToMono(AdvisorySessionDTO.class)
+              .block();
       if (response == null) {
         throw new AdvisorySessionOrderException("Failed to order advisory session");
       }
       return response;
-    } catch (RestClientException e) {
+    } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to order advisory session", e);
     }
   }
@@ -71,17 +69,26 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
     Long currentUserId = userService.getCurrentSessionUser().getId();
 
     try {
-      ResponseEntity<List<AdvisorySessionDTO>> response = restTemplate.exchange(
-              "http://localhost:8092/advisory-sessions?userId=" + currentUserId,
-              HttpMethod.GET,
-              null,
-              new ParameterizedTypeReference<>() {}
-      );
-      if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+      List<AdvisorySessionDTO> advisorySessions = webClientBuilder.build()
+              .get()
+              .uri(uriBuilder -> uriBuilder
+                      .scheme("http")
+                      .host("localhost")
+                      .port(8092)
+                      .path("/advisory-sessions")
+                      .queryParam("userId", currentUserId)
+                      .build())
+              .retrieve()
+              .bodyToFlux(AdvisorySessionDTO.class)
+              .collectList()
+              .block();
+
+      if (advisorySessions == null) {
         throw new AdvisorySessionOrderException("Failed to get advisory sessions");
       }
-      return response.getBody();
-    } catch (RestClientException e) {
+
+      return advisorySessions;
+    } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
     }
   }
@@ -96,17 +103,26 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   public List<AdvisorySessionDTO> getAdvisersSessions() {
     String email = userService.getCurrentSessionUser().getEmail();
     try {
-      ResponseEntity<List<AdvisorySessionDTO>> response = restTemplate.exchange(
-              "http://localhost:8092/advisory-sessions/advisers?email=" + email,
-              HttpMethod.GET,
-              null,
-              new ParameterizedTypeReference<>() {}
-      );
-      if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+      List<AdvisorySessionDTO> response = webClientBuilder.build()
+              .get()
+              .uri(uriBuilder -> uriBuilder
+                      .scheme("http")
+                      .host("localhost")
+                      .port(8092)
+                      .path("/advisory-sessions/advisers")
+                      .queryParam("email", email)
+                      .build()
+              )
+              .retrieve()
+              .bodyToFlux(AdvisorySessionDTO.class)
+              .collectList()
+              .block();
+
+      if (response == null || response.isEmpty()) {
         throw new AdvisorySessionOrderException("Failed to get advisory sessions");
       }
-      return response.getBody();
-    } catch (RestClientException e) {
+      return response;
+    } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
     }
   }
@@ -130,12 +146,15 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
     );
 
     try {
-      restTemplate.put(
-              "http://localhost:8092/advisory-sessions",
-              request,
-              AdvisorySessionDTO.class
-      );
-    } catch (RestClientException e) {
+
+      webClientBuilder.build()
+              .put()
+              .uri("http://localhost:8092/advisory-sessions")
+              .bodyValue(request)
+              .retrieve()
+              .bodyToMono(AdvisorySessionDTO.class)
+              .block();
+    } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to reschedule advisory session", e);
     }
   }
@@ -150,18 +169,21 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   public void deleteAdvisorySession(Long id) {
     Long currentUserId = userService.getCurrentSessionUser().getId();
     try {
-      ResponseEntity<Void> response = restTemplate.exchange(
-              "http://localhost:8092/advisory-sessions/{id}?userId={userId}",
-              HttpMethod.DELETE,
-              null,
-              Void.class,
-              id,
-              currentUserId
-      );
-      if (response.getStatusCode() != HttpStatus.NO_CONTENT) {
-        throw new AdvisorySessionOrderException("Failed to delete advisory session");
-      }
-    } catch (RestClientException e) {
+      webClientBuilder.build()
+              .delete()
+              .uri(uriBuilder -> uriBuilder
+                      .scheme("http")
+                      .host("localhost")
+                      .port(8092)
+                      .path("/advisory-sessions/{id}")
+                      .queryParam("userId", currentUserId)
+                      .build(id)
+              )
+              .retrieve()
+              .toBodilessEntity()
+              .block();
+
+    } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to delete advisory session", e);
     }
   }
