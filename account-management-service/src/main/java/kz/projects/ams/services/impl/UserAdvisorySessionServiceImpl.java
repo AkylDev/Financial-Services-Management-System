@@ -44,7 +44,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
     try {
       AdvisorySessionDTO response = webClientBuilder.build()
               .post()
-              .uri("http://localhost:8092/advisory-sessions")
+              .uri("/advisory-sessions")
               .bodyValue(request)
               .retrieve()
               .bodyToMono(AdvisorySessionDTO.class)
@@ -72,9 +72,6 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
       List<AdvisorySessionDTO> advisorySessions = webClientBuilder.build()
               .get()
               .uri(uriBuilder -> uriBuilder
-                      .scheme("http")
-                      .host("localhost")
-                      .port(8092)
                       .path("/advisory-sessions")
                       .queryParam("userId", currentUserId)
                       .build())
@@ -106,9 +103,6 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
       List<AdvisorySessionDTO> response = webClientBuilder.build()
               .get()
               .uri(uriBuilder -> uriBuilder
-                      .scheme("http")
-                      .host("localhost")
-                      .port(8092)
                       .path("/advisory-sessions/advisers")
                       .queryParam("email", email)
                       .build()
@@ -149,7 +143,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
 
       webClientBuilder.build()
               .put()
-              .uri("http://localhost:8092/advisory-sessions")
+              .uri("/advisory-sessions")
               .bodyValue(request)
               .retrieve()
               .bodyToMono(AdvisorySessionDTO.class)
@@ -172,9 +166,6 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
       webClientBuilder.build()
               .delete()
               .uri(uriBuilder -> uriBuilder
-                      .scheme("http")
-                      .host("localhost")
-                      .port(8092)
                       .path("/advisory-sessions/{id}")
                       .queryParam("userId", currentUserId)
                       .build(id)

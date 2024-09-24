@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
     try {
       AdviserDTO response = webClientBuilder.build()
               .post()
-              .uri("http://localhost:8092/financial-advisors")
+              .uri("/financial-advisors")
               .bodyValue(adviser)
               .retrieve()
               .bodyToMono(AdviserDTO.class)

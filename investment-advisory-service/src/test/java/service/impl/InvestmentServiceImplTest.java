@@ -1,6 +1,6 @@
 package service.impl;
 
-import kz.projects.ias.dto.BalanceCheckRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.projects.ias.dto.BalanceCheckResponse;
 import kz.projects.ias.dto.InvestmentDTO;
 import kz.projects.ias.exceptions.NotSufficientFundsException;
@@ -12,16 +12,23 @@ import kz.projects.ias.models.enums.RequestType;
 import kz.projects.ias.repositories.InvestmentRepository;
 import kz.projects.ias.service.CustomerRequestService;
 import kz.projects.ias.service.impl.InvestmentServiceImpl;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -31,9 +38,6 @@ public class InvestmentServiceImplTest {
 
   @Mock
   private InvestmentRepository investmentRepository;
-
-  @Mock
-  private RestTemplate restTemplate;
 
   @Mock
   private CustomerRequestService customerRequestService;
@@ -47,14 +51,22 @@ public class InvestmentServiceImplTest {
   }
 
   @Test
-  void testCreateInvestment_Success() {
+  void testCreateInvestment_Success() throws IOException, InterruptedException {
+    MockWebServer mockWebServer = new MockWebServer();
+    mockWebServer.start();
+
+    WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+    investmentService = new InvestmentServiceImpl(investmentRepository, webClientBuilder, customerRequestService);
+
     BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
             true,
             1000.0
     );
-
-    when(restTemplate.postForObject(anyString(), any(BalanceCheckRequest.class), eq(BalanceCheckResponse.class)))
-            .thenReturn(balanceCheckResponse);
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody(new ObjectMapper().writeValueAsString(balanceCheckResponse))
+    );
 
     InvestmentDTO request = new InvestmentDTO(
             1L,
@@ -84,17 +96,34 @@ public class InvestmentServiceImplTest {
     assertEquals(investment.getUserId(), result.userId());
     assertEquals(investment.getInvestmentType(), result.investmentType());
     assertEquals(investment.getAmount(), result.amount());
+
+    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+    assertNotNull(recordedRequest);
+    assertEquals("/check-balance", recordedRequest.getPath());
+
+    mockWebServer.shutdown();
   }
 
   @Test
-  void testCreateInvestment_InsufficientFunds() {
+  void testCreateInvestment_InsufficientFunds() throws IOException, InterruptedException {
+    MockWebServer mockWebServer = new MockWebServer();
+    mockWebServer.start();
+
+    WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+    investmentService = new InvestmentServiceImpl(investmentRepository, webClientBuilder, customerRequestService);
+
     BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
             false,
             null
     );
 
-    when(restTemplate.postForObject(anyString(), any(BalanceCheckRequest.class), eq(BalanceCheckResponse.class)))
-            .thenReturn(balanceCheckResponse);
+
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody(new ObjectMapper().writeValueAsString(balanceCheckResponse))
+    );
+
 
     InvestmentDTO request = new InvestmentDTO(
             1L,
@@ -106,6 +135,12 @@ public class InvestmentServiceImplTest {
     );
 
     assertThrows(NotSufficientFundsException.class, () -> investmentService.createInvestment(request));
+
+    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+    assertNotNull(recordedRequest);
+    assertEquals("/check-balance", recordedRequest.getPath());
+
+    mockWebServer.shutdown();
   }
 
   @Test

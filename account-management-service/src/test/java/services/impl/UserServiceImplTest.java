@@ -1,5 +1,6 @@
 package services.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.projects.ams.dto.AdviserDTO;
 import kz.projects.ams.dto.UserDTO;
 import kz.projects.ams.dto.requests.LoginRequest;
@@ -11,19 +12,26 @@ import kz.projects.ams.repositories.PermissionsRepository;
 import kz.projects.ams.repositories.UserRepository;
 import kz.projects.ams.services.impl.CustomUserDetailsService;
 import kz.projects.ams.services.impl.UserServiceImpl;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,19 +55,20 @@ class UserServiceImplTest {
   @Mock
   private UserMapper userMapper;
 
-  @Mock
-  private RestTemplate restTemplate;
-
   @InjectMocks
   private UserServiceImpl userService;
 
+  private MockWebServer mockWebServer;
   private UserDTO userDTO;
   private User user;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws IOException {
+    mockWebServer = new MockWebServer();
+    mockWebServer.start();
+
     userDTO = new UserDTO(
-            null, // Assuming ID is not set during setup
+            null,
             "Test User",
             "test@example.com",
             "password"
@@ -69,6 +78,11 @@ class UserServiceImplTest {
     user.setName("Test User");
     user.setEmail("test@example.com");
     user.setPassword("encodedPassword");
+  }
+
+  @AfterEach
+  void tearDown() throws IOException {
+    mockWebServer.shutdown();
   }
 
   @Test
@@ -135,7 +149,7 @@ class UserServiceImplTest {
   }
 
   @Test
-  void testRegisterAsAdvisorSuccess() {
+  void testRegisterAsAdvisorSuccess() throws Exception {
     AdviserDTO adviserDTO = new AdviserDTO(
             "Advisor",
             "advisor@example.com",
@@ -149,12 +163,7 @@ class UserServiceImplTest {
     savedUser.setPassword("encodedPassword");
     savedUser.setPermissionList(Collections.singletonList(new Permissions(1L, "ROLE_ADVISOR")));
 
-    UserDTO userDTO = new UserDTO(
-            null, // Assuming ID is not set during setup
-            adviserDTO.name(),
-            adviserDTO.email(),
-            "password"
-    );
+    UserDTO userDTO = new UserDTO(null, adviserDTO.name(), adviserDTO.email(), "password");
 
     when(userRepository.findByEmail(adviserDTO.email())).thenReturn(Optional.empty());
     when(passwordEncoder.encode(adviserDTO.password())).thenReturn("encodedPassword");
@@ -162,11 +171,17 @@ class UserServiceImplTest {
     when(permissionsRepository.save(any(Permissions.class))).thenReturn(new Permissions(1L, "ROLE_ADVISOR"));
     when(userRepository.save(any(User.class))).thenReturn(savedUser);
     when(userMapper.toDto(any(User.class))).thenReturn(userDTO);
-    when(restTemplate.postForObject(
-            eq("http://localhost:8092/financial-advisors"),
-            eq(adviserDTO),
-            eq(AdviserDTO.class)
-    )).thenReturn(adviserDTO);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String mockWebAdviser = objectMapper.writeValueAsString(adviserDTO);
+
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(201)
+            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody(mockWebAdviser));
+
+    WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+    userService = new UserServiceImpl(userRepository, permissionsRepository, passwordEncoder, userDetailsService, userMapper, webClientBuilder);
 
     UserDTO registeredAdvisor = userService.registerAsAdvisor(adviserDTO);
 
@@ -174,6 +189,12 @@ class UserServiceImplTest {
     assertEquals("Advisor", registeredAdvisor.name());
     assertEquals("advisor@example.com", registeredAdvisor.email());
     verify(userRepository, times(1)).save(any(User.class));
+
+    var recordedRequest = mockWebServer.takeRequest(10, TimeUnit.SECONDS);
+    assertNotNull(recordedRequest);
+    assertEquals("/financial-advisors", recordedRequest.getPath());
+    assertEquals("POST", recordedRequest.getMethod());
+
   }
 
   @Test

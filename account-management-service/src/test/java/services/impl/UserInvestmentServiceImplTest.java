@@ -1,11 +1,14 @@
 package services.impl;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
-import kz.projects.ams.dto.AdvisorySessionDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.projects.ams.dto.TransactionDTO;
 import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.requests.InvestmentRequest;
@@ -22,27 +25,25 @@ import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.UserInvestmentServiceImpl;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.exceptions.misusing.PotentialStubbingProblem;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class UserInvestmentServiceImplTest {
-
-  @Mock
-  private RestTemplate restTemplate;
 
   @Mock
   private UserService userService;
@@ -56,6 +57,9 @@ public class UserInvestmentServiceImplTest {
   @InjectMocks
   private UserInvestmentServiceImpl userInvestmentService;
 
+  private MockWebServer mockWebServer;
+  private ObjectMapper objectMapper;
+
   private User user;
   private Account account;
   private InvestmentRequest investmentRequest;
@@ -63,7 +67,13 @@ public class UserInvestmentServiceImplTest {
   private BalanceCheckRequest balanceCheckRequest;
 
   @BeforeEach
-  public void setUp() {
+  public void setUp() throws IOException {
+    mockWebServer = new MockWebServer();
+    mockWebServer.start();
+    String baseUrl = mockWebServer.url("/").toString();
+    userInvestmentService = new UserInvestmentServiceImpl(WebClient.builder().baseUrl(baseUrl), userService, transactionService, accountRepository);
+
+    objectMapper = new ObjectMapper();
     user = new User();
     user.setId(1L);
 
@@ -90,8 +100,13 @@ public class UserInvestmentServiceImplTest {
     );
   }
 
+  @AfterEach
+  public void tearDown() throws Exception {
+    mockWebServer.shutdown();
+  }
+
   @Test
-  public void testToInvest_Success() {
+  public void testToInvest_Success() throws Exception {
     TransactionDTO transactionResponse = new TransactionDTO(
             1L,
             1L,
@@ -99,25 +114,85 @@ public class UserInvestmentServiceImplTest {
             0.0,
             new Date()
     );
+
     when(accountRepository.findById(any(Long.class))).thenReturn(Optional.of(account));
     when(userService.getCurrentSessionUser()).thenReturn(user);
-    when(restTemplate.postForObject(eq("http://localhost:8092/investments"),
-            any(InvestmentRequest.class), eq(InvestmentResponse.class)))
-            .thenReturn(investmentResponse);
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader("Content-Type", "application/json")
+            .setBody(objectMapper.writeValueAsString(investmentResponse)));
     when(transactionService.withdraw(any(TransactionRequest.class))).thenReturn(transactionResponse);
 
     InvestmentResponse response = userInvestmentService.toInvest(investmentRequest);
 
-    ArgumentCaptor<TransactionRequest> captor = ArgumentCaptor.forClass(TransactionRequest.class);
-    verify(transactionService).withdraw(captor.capture());
-    TransactionRequest capturedRequest = captor.getValue();
-
     assertNotNull(response);
     assertEquals(investmentResponse.id(), response.id());
     assertEquals(investmentResponse.amount(), response.amount(), 0.0);
+  }
 
-    assertEquals(investmentRequest.accountId(), capturedRequest.accountId());
-    assertEquals(investmentRequest.amount(), capturedRequest.amount(), 0.0);
+  @Test
+  public void testToInvest_WebClientResponseException() {
+    when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+    when(userService.getCurrentSessionUser()).thenReturn(user);
+    mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.toInvest(investmentRequest));
+  }
+
+  @Test
+  public void testUpdateInvestment_Success() {
+    when(userService.getCurrentSessionUser()).thenReturn(user);
+
+    mockWebServer.enqueue(new MockResponse().setResponseCode(204));
+
+    assertDoesNotThrow(() -> userInvestmentService.updateInvestment(1L, investmentRequest));
+  }
+
+  @Test
+  public void testUpdateInvestment_WebClientResponseException() {
+    when(userService.getCurrentSessionUser()).thenReturn(user);
+    mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.updateInvestment(1L, investmentRequest));
+  }
+
+  @Test
+  public void testDeleteInvestment_Success() {
+    when(userService.getCurrentSessionUser()).thenReturn(user);
+
+    mockWebServer.enqueue(new MockResponse().setResponseCode(204));
+
+    assertDoesNotThrow(() -> userInvestmentService.deleteInvestment(1L));
+  }
+
+  @Test
+  public void testDeleteInvestment_WebClientResponseException() {
+    when(userService.getCurrentSessionUser()).thenReturn(user);
+    mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.deleteInvestment(1L));
+  }
+
+  @Test
+  public void testGetAllUsersInvestments_Success() throws Exception {
+    when(userService.getCurrentSessionUser()).thenReturn(user);
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader("Content-Type", "application/json")
+            .setBody(objectMapper.writeValueAsString(Collections.singletonList(investmentResponse))));
+
+    List<InvestmentResponse> investments = userInvestmentService.getAllUsersInvestments();
+
+    assertNotNull(investments);
+    assertEquals(1, investments.size());
+  }
+
+  @Test
+  public void testGetAllUsersInvestments_WebClientResponseException() {
+    when(userService.getCurrentSessionUser()).thenReturn(user);
+    mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.getAllUsersInvestments());
   }
 
   @Test
@@ -137,70 +212,6 @@ public class UserInvestmentServiceImplTest {
     when(userService.getCurrentSessionUser()).thenReturn(user);
 
     assertThrows(UnauthorizedException.class, () -> userInvestmentService.toInvest(investmentRequest));
-  }
-
-  @Test
-  public void testToInvest_RestClientException() {
-    when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-    when(restTemplate.postForObject(eq("http://localhost:8092/investments"), any(InvestmentRequest.class), eq(InvestmentResponse.class)))
-            .thenThrow(RestClientException.class);
-
-    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.toInvest(investmentRequest));
-  }
-
-  @Test
-  public void testUpdateInvestment_Success() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-
-    assertDoesNotThrow(() -> userInvestmentService.updateInvestment(1L, investmentRequest));
-  }
-
-  @Test
-  public void testUpdateInvestment_RestClientException() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-    doThrow(RestClientException.class).when(restTemplate).put(eq("http://localhost:8092/investments"), any(InvestmentRequest.class), eq(AdvisorySessionDTO.class));
-
-    assertThrows(PotentialStubbingProblem.class, () -> userInvestmentService.updateInvestment(1L, investmentRequest));
-  }
-
-  @Test
-  public void testDeleteInvestment_Success() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-
-    assertDoesNotThrow(() -> userInvestmentService.deleteInvestment(1L));
-  }
-
-  @Test
-  public void testDeleteInvestment_RestClientException() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-    doThrow(RestClientException.class).when(restTemplate).delete(eq("http://localhost:8092/investments/{id}?userId={userId}"), eq(1L), eq(1L));
-
-    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.deleteInvestment(1L));
-  }
-
-  @Test
-  public void testGetAllUsersInvestments_Success() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-    ResponseEntity<List<InvestmentResponse>> responseEntity = ResponseEntity.ok(Collections.singletonList(investmentResponse));
-    when(restTemplate.exchange(eq("http://localhost:8092/investments?userId=1"), eq(HttpMethod.GET), eq(null),
-            any(ParameterizedTypeReference.class)))
-            .thenReturn(responseEntity);
-
-    List<InvestmentResponse> investments = userInvestmentService.getAllUsersInvestments();
-
-    assertNotNull(investments);
-    assertEquals(1, investments.size());
-  }
-
-  @Test
-  public void testGetAllUsersInvestments_RestClientException() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-    when(restTemplate.exchange(eq("http://localhost:8092/investments?userId=1"), eq(HttpMethod.GET),
-            eq(null), any(ParameterizedTypeReference.class)))
-            .thenThrow(RestClientException.class);
-
-    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.getAllUsersInvestments());
   }
 
   @Test

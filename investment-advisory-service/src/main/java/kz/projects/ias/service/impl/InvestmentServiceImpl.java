@@ -61,7 +61,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     try {
       BalanceCheckResponse response = webClientBuilder.build()
               .post()
-              .uri("http://localhost:8091/check-balance")
+              .uri("/check-balance")
               .bodyValue(balanceCheckRequest)
               .retrieve()
               .bodyToMono(BalanceCheckResponse.class)

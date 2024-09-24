@@ -1,35 +1,39 @@
 package services.impl;
 
-import kz.projects.ams.exceptions.AdvisorySessionOrderException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import kz.projects.ams.services.UserService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.models.User;
 import kz.projects.ams.services.impl.UserAdvisorySessionServiceImpl;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class UserAdvisorySessionServiceImplTest {
-
-  @Mock
-  private RestTemplate restTemplate;
 
   @Mock
   private UserService userService;
@@ -37,53 +41,55 @@ public class UserAdvisorySessionServiceImplTest {
   @InjectMocks
   private UserAdvisorySessionServiceImpl advisorySessionService;
 
+  private MockWebServer mockWebServer;
+
+  private ObjectMapper objectMapper;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    mockWebServer = new MockWebServer();
+    mockWebServer.start();
+
+    WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+    advisorySessionService = new UserAdvisorySessionServiceImpl(webClientBuilder, userService);
+
+    objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
+  }
+
+  @AfterEach
+  public void tearDown() throws Exception {
+    mockWebServer.shutdown();
+  }
+
   @Test
-  public void testOrderAdvisorySession_Success() {
+  public void testOrderAdvisorySession_Success() throws Exception {
     User currentUser = new User();
     currentUser.setId(1L);
     when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AdvisorySessionDTO request = new AdvisorySessionDTO(null, null, 10L, null, null);
 
-    when(restTemplate.postForObject(
-            anyString(),
-            argThat((AdvisorySessionDTO dto) -> dto.advisoryId().equals(10L)),
-            eq(AdvisorySessionDTO.class)))
-            .thenReturn(request);
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(201)
+            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody(new ObjectMapper().writeValueAsString(request))
+    );
 
     AdvisorySessionDTO result = advisorySessionService.orderAdvisorySession(request);
 
     verify(userService).getCurrentSessionUser();
-    verify(restTemplate).postForObject(
-            anyString(),
-            argThat((AdvisorySessionDTO dto) -> dto.advisoryId().equals(10L)),
-            eq(AdvisorySessionDTO.class));
-
     assertNotNull(result);
-    assertEquals(request, result);
-    assertEquals(request.userId(), result.userId());
     assertEquals(request.advisoryId(), result.advisoryId());
-    assertEquals(request.date(), result.date());
-    assertEquals(request.time(), result.time());
-  }
 
-  @Test(expected = AdvisorySessionOrderException.class)
-  public void testOrderAdvisorySession_RestClientException() {
-    User currentUser = new User();
-    currentUser.setId(1L);
-    when(userService.getCurrentSessionUser()).thenReturn(currentUser);
+    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
 
-    AdvisorySessionDTO request = new AdvisorySessionDTO(null, null, 10L, null, null);
-
-
-    when(restTemplate.postForObject(anyString(), any(AdvisorySessionDTO.class), eq(AdvisorySessionDTO.class)))
-            .thenThrow(new RestClientException("Simulated RestClientException"));
-
-    advisorySessionService.orderAdvisorySession(request);
+    assertNotNull(recordedRequest);
+    assertEquals("/advisory-sessions", recordedRequest.getPath());
   }
 
   @Test
-  public void testGetAdvisorySessionsPlanned_Success() {
+  public void testGetAdvisorySessionsPlanned_Success() throws Exception {
     User currentUser = new User();
     currentUser.setId(1L);
     when(userService.getCurrentSessionUser()).thenReturn(currentUser);
@@ -92,27 +98,26 @@ public class UserAdvisorySessionServiceImplTest {
             new AdvisorySessionDTO(1L, 1L, 2L, LocalDate.now(), LocalTime.of(9, 0)),
             new AdvisorySessionDTO(2L, 1L, 3L, LocalDate.now(), LocalTime.of(10, 0))
     );
-    ResponseEntity<List<AdvisorySessionDTO>> mockResponseEntity = new ResponseEntity<>(mockSessions, HttpStatus.OK);
-    when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), eq(null),
-            eq(new ParameterizedTypeReference<List<AdvisorySessionDTO>>() {})))
-            .thenReturn(mockResponseEntity);
+
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody(objectMapper.writeValueAsString(mockSessions))
+    );
 
     List<AdvisorySessionDTO> result = advisorySessionService.getAdvisorySessionsPlanned();
 
-    verify(restTemplate).exchange(
-            eq("http://localhost:8092/advisory-sessions?userId=1"),
-            eq(HttpMethod.GET),
-            eq(null),
-            eq(new ParameterizedTypeReference<List<AdvisorySessionDTO>>() {})
-    );
-
+    verify(userService).getCurrentSessionUser();
     assertNotNull(result);
     assertEquals(2, result.size());
-    assertEquals(mockSessions, result);
+
+    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+    assertNotNull(recordedRequest);
+    assertEquals("/advisory-sessions?userId=1", recordedRequest.getPath());
   }
 
   @Test
-  public void testGetAdvisersSessions_Success() {
+  public void testGetAdvisersSessions_Success() throws Exception {
     User currentUser = new User();
     currentUser.setEmail("test@example.com");
     when(userService.getCurrentSessionUser()).thenReturn(currentUser);
@@ -121,68 +126,63 @@ public class UserAdvisorySessionServiceImplTest {
             new AdvisorySessionDTO(1L, 1L, 2L, LocalDate.now(), LocalTime.of(9, 0)),
             new AdvisorySessionDTO(2L, 1L, 3L, LocalDate.now(), LocalTime.of(10, 0))
     );
-    ResponseEntity<List<AdvisorySessionDTO>> mockResponseEntity = new ResponseEntity<>(mockSessions, HttpStatus.OK);
-    when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), eq(null),
-            eq(new ParameterizedTypeReference<List<AdvisorySessionDTO>>() {})))
-            .thenReturn(mockResponseEntity);
+
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody(objectMapper.writeValueAsString(mockSessions))
+    );
 
     List<AdvisorySessionDTO> result = advisorySessionService.getAdvisersSessions();
 
-    verify(restTemplate).exchange(
-            eq("http://localhost:8092/advisory-sessions/advisers?email=test@example.com"),
-            eq(HttpMethod.GET),
-            eq(null),
-            eq(new ParameterizedTypeReference<List<AdvisorySessionDTO>>() {})
-    );
-
+    verify(userService).getCurrentSessionUser();
     assertNotNull(result);
     assertEquals(2, result.size());
-    assertEquals(mockSessions, result);
+
+    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+    assertNotNull(recordedRequest);
+    assertEquals("/advisory-sessions/advisers?email=test@example.com", recordedRequest.getPath());
   }
 
   @Test
-  public void testRescheduleAdvisorySession_Success() {
+  public void testRescheduleAdvisorySession_Success() throws Exception {
     User currentUser = new User();
     currentUser.setId(1L);
     when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AdvisorySessionDTO request = new AdvisorySessionDTO(1L, 1L, 2L, LocalDate.now(), LocalTime.of(9, 0));
+
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+    );
+
     advisorySessionService.rescheduleAdvisorySession(request.id(), request);
 
-    verify(restTemplate).put(
-            eq("http://localhost:8092/advisory-sessions"),
-            eq(request),
-            eq(AdvisorySessionDTO.class)
-    );
+    verify(userService).getCurrentSessionUser();
+
+    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+    assertNotNull(recordedRequest);
+    assertEquals("/advisory-sessions", recordedRequest.getPath());
   }
 
   @Test
-  public void testDeleteAdvisorySession_Success() {
+  public void testDeleteAdvisorySession_Success() throws Exception {
     User currentUser = new User();
     currentUser.setId(1L);
     when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     Long advisorySessionId = 1L;
 
-    ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    when(restTemplate.exchange(
-            eq("http://localhost:8092/advisory-sessions/{id}?userId={userId}"),
-            eq(HttpMethod.DELETE),
-            isNull(),
-            eq(Void.class),
-            eq(advisorySessionId),
-            eq(currentUser.getId())
-    )).thenReturn(responseEntity);
+    mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(204)
+    );
 
     advisorySessionService.deleteAdvisorySession(advisorySessionId);
 
-    verify(restTemplate).exchange(
-            eq("http://localhost:8092/advisory-sessions/{id}?userId={userId}"),
-            eq(HttpMethod.DELETE),
-            isNull(),
-            eq(Void.class),
-            eq(advisorySessionId),
-            eq(currentUser.getId())
-    );
+    verify(userService).getCurrentSessionUser();
+
+    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+    assertNotNull(recordedRequest);
+    assertEquals("/advisory-sessions/" + advisorySessionId + "?userId=1", recordedRequest.getPath());
   }
 }

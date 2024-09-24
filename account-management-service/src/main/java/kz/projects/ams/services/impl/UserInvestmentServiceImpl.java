@@ -72,7 +72,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     try {
       InvestmentResponse response = webClientBuilder.build()
               .post()
-              .uri("http://localhost:8092/investments")
+              .uri("/investments")
               .bodyValue(request)
               .retrieve()
               .bodyToMono(InvestmentResponse.class)
@@ -119,7 +119,7 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
     try {
       webClientBuilder.build()
               .put()
-              .uri("http://localhost:8092/investments")
+              .uri("/investments")
               .bodyValue(request)
               .retrieve()
               .toBodilessEntity()
@@ -142,9 +142,6 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
       webClientBuilder.build()
               .delete()
               .uri(uriBuilder -> uriBuilder
-                      .scheme("http")
-                      .host("localhost")
-                      .port(8092)
                       .path("/investments/{id}")
                       .queryParam("userId", currentUserId)
                       .build(id))
@@ -170,9 +167,6 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
       List<InvestmentResponse> investments = webClientBuilder.build()
               .get()
               .uri(uriBuilder -> uriBuilder
-                      .scheme("http")
-                      .host("localhost")
-                      .port(8092)
                       .path("/investments")
                       .queryParam("userId", currentUserId)
                       .build())
