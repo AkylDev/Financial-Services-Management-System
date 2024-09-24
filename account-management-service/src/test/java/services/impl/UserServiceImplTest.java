@@ -115,20 +115,20 @@ class UserServiceImplTest {
 
   @Test
   void testLoginSuccess() {
-    LoginRequest loginRequest = new LoginRequest(
-            "test@example.com",
-            "password"
-    );
+    LoginRequest request = new LoginRequest("test@example.com", "password123");
+    User user = new User();
+    user.setEmail(request.email());
+    user.setPassword("encodedPassword");
 
-    UserDetails userDetails = mock(UserDetails.class);
-    when(userDetails.getPassword()).thenReturn("encodedPassword");
-    when(userDetailsService.loadUserByUsername(loginRequest.email())).thenReturn(userDetails);
-    when(passwordEncoder.matches(loginRequest.password(), userDetails.getPassword())).thenReturn(true);
+    when(userDetailsService.loadUserByUsername(request.email())).thenReturn(user);
+    when(passwordEncoder.matches(request.password(), user.getPassword())).thenReturn(true);
+    when(userMapper.toDto(any(User.class))).thenReturn(userDTO);
 
-    UserDetails loggedInUser = userService.login(loginRequest);
+    UserDTO loggedInUser = userService.login(request);
 
-    assertNotNull(loggedInUser);
-    verify(userDetailsService, times(1)).loadUserByUsername(loginRequest.email());
+    assertEquals(request.email(), loggedInUser.email());
+    verify(userDetailsService).loadUserByUsername(request.email());
+    verify(passwordEncoder).matches(request.password(), user.getPassword());
   }
 
   @Test

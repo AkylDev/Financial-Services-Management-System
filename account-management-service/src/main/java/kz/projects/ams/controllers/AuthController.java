@@ -12,7 +12,6 @@ import kz.projects.ams.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,14 +38,14 @@ public class AuthController {
   @Operation(summary = "Login a user")
   @ApiResponses(value = {
           @ApiResponse(responseCode = "200", description = "Login successful",
-                  content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDetails.class))),
+                  content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
           @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content)
   })
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody LoginRequest request) {
     try {
-      UserDetails userDetails = userService.login(request);
-      return ResponseEntity.ok(userDetails);
+      UserDTO userDTO = userService.login(request);
+      return ResponseEntity.ok(userDTO);
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }

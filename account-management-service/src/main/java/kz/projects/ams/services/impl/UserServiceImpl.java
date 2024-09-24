@@ -87,14 +87,14 @@ public class UserServiceImpl implements UserService {
    * @throws UsernameNotFoundException если предоставленные учетные данные неверны
    */
   @Override
-  public UserDetails login(LoginRequest request) {
+  public UserDTO login(LoginRequest request) {
     UserDetails userDetails = userDetailsService.loadUserByUsername(request.email());
     if (passwordEncoder.matches(request.password(), userDetails.getPassword())) {
       UsernamePasswordAuthenticationToken authenticationToken =
               new UsernamePasswordAuthenticationToken(userDetails, null,
                       userDetails.getAuthorities());
       SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-      return userDetails;
+      return userMapper.toDto((User) userDetails);
     } else {
       throw new BadCredentialsException("Invalid credentials");
     }

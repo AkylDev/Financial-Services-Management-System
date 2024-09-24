@@ -15,7 +15,7 @@ public class UserMapper {
             user.getId(),
             user.getName(),
             user.getEmail(),
-            null // Assuming password is not included in DTO for security reasons
+            null
     );
   }
 }
