@@ -1,0 +1,28 @@
+server:
+  port: 8091
+
+spring:
+  application:
+    name: account-management-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: amspass
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: true
+
+webclient:
+  service:
+    base-url: http://INVESTMENT-ADVISORY-SERVICE
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true

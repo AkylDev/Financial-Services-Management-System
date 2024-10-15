@@ -30,11 +30,13 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<spring-cloud.version>2023.0.3</spring-cloud.version>
 	</properties>
 
 	<modules>
 		<module>account-management-service</module>
 		<module>investment-advisory-service</module>
+		<module>eureka-server</module>
 	</modules>
 
 	<dependencies>
@@ -92,6 +94,18 @@
 			<version>2.17.2</version>
 		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<pluginManagement>

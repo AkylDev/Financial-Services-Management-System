@@ -1,0 +1,27 @@
+server:
+  port: 8092
+
+spring:
+  application:
+    name: investment-advisory-service
+  datasource:
+    url: jdbc:postgresql://localhost:2345/postgres
+    username: postgres
+    password: iaspass
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: true
+
+webclient:
+  service:
+    base-url: http://ACCOUNT-MANAGEMENT-SERVICE
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true
