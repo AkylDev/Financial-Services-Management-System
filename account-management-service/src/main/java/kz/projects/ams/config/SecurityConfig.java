@@ -38,15 +38,15 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                     authorizationManagerRequestMatcherRegistry.requestMatchers(HttpMethod.DELETE).permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
-                            .requestMatchers("/auth/**").permitAll()
-                            .requestMatchers("/check-balance").permitAll()
+                            .requestMatchers("/api/v1/ams/auth/**").permitAll()
+                            .requestMatchers("/api/v1/ams/check-balance").permitAll()
                             .anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults())
             .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
                     .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
             .formLogin(AbstractAuthenticationFilterConfigurer::disable)
             .logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer
-                    .logoutUrl("/auth/logout")
+                    .logoutUrl("/api/v1/ams/auth/logout")
                     .permitAll());
 
     return http.build();

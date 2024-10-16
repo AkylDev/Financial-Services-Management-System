@@ -37,6 +37,7 @@
 		<module>account-management-service</module>
 		<module>investment-advisory-service</module>
 		<module>eureka-server</module>
+		<module>api-gateway</module>
 	</modules>
 
 	<dependencies>

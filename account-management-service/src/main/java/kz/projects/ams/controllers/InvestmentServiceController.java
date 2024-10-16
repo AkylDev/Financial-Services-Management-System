@@ -19,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/ams")
 public class InvestmentServiceController {
 
   private final UserInvestmentService investmentAdvisoryService;
@@ -43,7 +44,7 @@ public class InvestmentServiceController {
   @GetMapping("/view-investments")
   public ResponseEntity<List<InvestmentResponse>> getAllUsersInvestments() {
     List<InvestmentResponse> investmentResponses = investmentAdvisoryService.getAllUsersInvestments();
-    return new ResponseEntity<>(investmentResponses, HttpStatus.CREATED);
+    return new ResponseEntity<>(investmentResponses, HttpStatus.OK);
   }
 
   @Operation(summary = "Update an investment")

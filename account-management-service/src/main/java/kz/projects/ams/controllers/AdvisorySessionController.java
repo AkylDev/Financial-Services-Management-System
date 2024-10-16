@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/advisories")
+@RequestMapping("/api/v1/ams/advisories")
 public class AdvisorySessionController {
 
   private final UserAdvisorySessionService advisorySessionService;

@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/transactions")
+@RequestMapping("/api/v1/ams/transactions")
 public class TransactionController {
 
   private final TransactionService transactionService;

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: ams
+          uri: lb://ACCOUNT-MANAGEMENT-SERVICE
+          predicates:
+            - Path=/api/v1/ams/**
+  main:
+    web-application-type: reactive
+
+server:
+  port: 8093
