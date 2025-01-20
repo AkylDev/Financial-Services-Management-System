@@ -99,7 +99,7 @@ public class InvestmentServiceImplTest {
 
     RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
     assertNotNull(recordedRequest);
-    assertEquals("/check-balance", recordedRequest.getPath());
+    assertEquals("/api/v1/ams/check-balance", recordedRequest.getPath());
 
     mockWebServer.shutdown();
   }
@@ -138,7 +138,7 @@ public class InvestmentServiceImplTest {
 
     RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
     assertNotNull(recordedRequest);
-    assertEquals("/check-balance", recordedRequest.getPath());
+    assertEquals("/api/v1/ams/check-balance", recordedRequest.getPath());
 
     mockWebServer.shutdown();
   }
