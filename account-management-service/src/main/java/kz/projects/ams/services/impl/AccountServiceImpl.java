@@ -8,10 +8,13 @@ import kz.projects.ams.models.Account;
 import kz.projects.ams.models.User;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.services.AccountService;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserService;
+import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +33,8 @@ public class AccountServiceImpl implements AccountService {
 
   private final UserService userService;
 
+  private final NotificationEventProducer notificationEventProducer;
+
   /**
    * Создает новый аккаунт для текущего пользователя.
    *
@@ -42,6 +47,9 @@ public class AccountServiceImpl implements AccountService {
     account.setUser(userService.getCurrentSessionUser());
     account.setAccountType(accountRequest.accountType());
     account.setBalance(accountRequest.balance());
+
+    publishEvent("You have successfully created account with type " + accountRequest.accountType() +
+            " and balance " + accountRequest.balance());
 
     return accountMapper.toDto(accountRepository.save(account));
   }
@@ -64,11 +72,11 @@ public class AccountServiceImpl implements AccountService {
    * Обновляет данные аккаунта с указанным идентификатором.
    * Проверяет права текущего пользователя на изменение аккаунта.
    *
-   * @param id идентификатор аккаунта
+   * @param id      идентификатор аккаунта
    * @param request {@link AccountDTO} объект, содержащий обновленные данные аккаунта
    * @return {@link AccountDTO} объект, представляющий обновленный аккаунт
    * @throws UserAccountNotFoundException если аккаунт с указанным идентификатором не найден
-   * @throws UnauthorizedException если текущий пользователь не авторизован для изменения аккаунта
+   * @throws UnauthorizedException        если текущий пользователь не авторизован для изменения аккаунта
    */
   @Override
   public AccountDTO updateAccount(Long id, AccountDTO request) {
@@ -77,17 +85,21 @@ public class AccountServiceImpl implements AccountService {
     }
 
     Optional<Account> accountOptional = accountRepository.findById(id);
-    if (accountOptional.isEmpty()){
+    if (accountOptional.isEmpty()) {
       throw new UserAccountNotFoundException("Account not found");
     }
 
     Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
+    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())) {
       throw new UnauthorizedException("You are not authorized to change this account");
     }
 
     account.setAccountType(request.accountType());
     account.setBalance(request.balance());
+
+    publishEvent("You have successfully updated your account with id " + account.getId() +
+            " to type " + account.getAccountType() +
+            " and balance " + account.getBalance());
 
     return accountMapper.toDto(accountRepository.save(account));
   }
@@ -98,20 +110,36 @@ public class AccountServiceImpl implements AccountService {
    *
    * @param id идентификатор аккаунта
    * @throws UserAccountNotFoundException если аккаунт с указанным идентификатором не найден
-   * @throws UnauthorizedException если текущий пользователь не авторизован для удаления аккаунта
+   * @throws UnauthorizedException        если текущий пользователь не авторизован для удаления аккаунта
    */
   @Override
   public void deleteAccount(Long id) {
     Optional<Account> accountOptional = accountRepository.findById(id);
-    if (accountOptional.isEmpty()){
+    if (accountOptional.isEmpty()) {
       throw new UserAccountNotFoundException("Account not found");
     }
 
     Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
+    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())) {
       throw new UnauthorizedException("You are not authorized to delete this account");
     }
 
     accountRepository.deleteById(id);
+
+    publishEvent("You have successfully deleted your account with id " + account.getId() +
+            " type " + account.getAccountType() +
+            " and balance " + account.getBalance());
+  }
+
+  private void publishEvent(String message) {
+    NotificationEvent event = new NotificationEvent(
+            userService.getCurrentSessionUser().getId().toString(),
+            userService.getCurrentSessionUser().getUsername(),
+            userService.getCurrentSessionUser().getEmail(),
+            message,
+            LocalDateTime.now().toString()
+    );
+
+    notificationEventProducer.publishEvent(event, "topic-account");
   }
 }

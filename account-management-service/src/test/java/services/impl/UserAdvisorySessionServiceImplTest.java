@@ -2,7 +2,11 @@ package services.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import kz.projects.ams.dto.AdvisorySessionDTO;
+import kz.projects.ams.models.User;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserService;
+import kz.projects.ams.services.impl.UserAdvisorySessionServiceImpl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -15,15 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import kz.projects.ams.dto.AdvisorySessionDTO;
-import kz.projects.ams.models.User;
-import kz.projects.ams.services.impl.UserAdvisorySessionServiceImpl;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
@@ -32,11 +27,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 public class UserAdvisorySessionServiceImplTest {
 
   @Mock
   private UserService userService;
+
+  @Mock
+  private NotificationEventProducer notificationEventProducer;
 
   @InjectMocks
   private UserAdvisorySessionServiceImpl advisorySessionService;
@@ -51,7 +54,7 @@ public class UserAdvisorySessionServiceImplTest {
     mockWebServer.start();
 
     WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
-    advisorySessionService = new UserAdvisorySessionServiceImpl(webClientBuilder, userService);
+    advisorySessionService = new UserAdvisorySessionServiceImpl(webClientBuilder, userService, notificationEventProducer);
 
     objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
@@ -78,7 +81,6 @@ public class UserAdvisorySessionServiceImplTest {
 
     AdvisorySessionDTO result = advisorySessionService.orderAdvisorySession(request);
 
-    verify(userService).getCurrentSessionUser();
     assertNotNull(result);
     assertEquals(request.advisoryId(), result.advisoryId());
 
@@ -158,8 +160,6 @@ public class UserAdvisorySessionServiceImplTest {
 
     advisorySessionService.rescheduleAdvisorySession(request.id(), request);
 
-    verify(userService).getCurrentSessionUser();
-
     RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
     assertNotNull(recordedRequest);
     assertEquals("/advisory-sessions", recordedRequest.getPath());
@@ -178,8 +178,6 @@ public class UserAdvisorySessionServiceImplTest {
     );
 
     advisorySessionService.deleteAdvisorySession(advisorySessionId);
-
-    verify(userService).getCurrentSessionUser();
 
     RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
     assertNotNull(recordedRequest);
