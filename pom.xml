@@ -38,6 +38,8 @@
 		<module>investment-advisory-service</module>
 		<module>eureka-server</module>
 		<module>api-gateway</module>
+		<module>notification-service</module>
+		<module>common-lib</module>
 	</modules>
 
 	<dependencies>

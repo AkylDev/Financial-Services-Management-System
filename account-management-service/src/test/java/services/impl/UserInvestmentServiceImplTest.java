@@ -1,13 +1,5 @@
 package services.impl;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.projects.ams.dto.TransactionDTO;
 import kz.projects.ams.dto.requests.BalanceCheckRequest;
@@ -22,6 +14,7 @@ import kz.projects.ams.models.Account;
 import kz.projects.ams.models.User;
 import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.repositories.AccountRepository;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.UserInvestmentServiceImpl;
@@ -42,6 +35,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 public class UserInvestmentServiceImplTest {
 
@@ -53,6 +50,9 @@ public class UserInvestmentServiceImplTest {
 
   @Mock
   private AccountRepository accountRepository;
+
+  @Mock
+  private NotificationEventProducer notificationEventProducer;
 
   @InjectMocks
   private UserInvestmentServiceImpl userInvestmentService;
@@ -71,7 +71,7 @@ public class UserInvestmentServiceImplTest {
     mockWebServer = new MockWebServer();
     mockWebServer.start();
     String baseUrl = mockWebServer.url("/").toString();
-    userInvestmentService = new UserInvestmentServiceImpl(WebClient.builder().baseUrl(baseUrl), userService, transactionService, accountRepository);
+    userInvestmentService = new UserInvestmentServiceImpl(WebClient.builder().baseUrl(baseUrl), userService, transactionService, accountRepository, notificationEventProducer);
 
     objectMapper = new ObjectMapper();
     user = new User();

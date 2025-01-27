@@ -11,15 +11,18 @@ import kz.projects.ams.dto.requests.InvestmentRequest;
 import kz.projects.ams.dto.responses.InvestmentResponse;
 import kz.projects.ams.models.Account;
 import kz.projects.ams.repositories.AccountRepository;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserInvestmentService;
 import kz.projects.ams.services.UserService;
+import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +41,8 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
   private final TransactionService transactionService;
 
   private final AccountRepository accountRepository;
+
+  private final NotificationEventProducer notificationEventProducer;
 
   /**
    * Выполняет инвестицию в указанный счет.
@@ -91,6 +96,9 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
       if (transactionResponse == null) {
         throw new InvestmentOperationException("Failed to withdraw amount for investment");
       }
+
+      publishEvent("You have successfully invested " + response.amount() + " to " + response.investmentType()
+              + " at " + response.date());
 
       return response;
     } catch (WebClientResponseException e) {
@@ -205,5 +213,17 @@ public class UserInvestmentServiceImpl implements UserInvestmentService {
             account.getBalance() >= request.amount(),
             account.getBalance()
     );
+  }
+
+  private void publishEvent(String message) {
+    NotificationEvent event = new NotificationEvent(
+            userService.getCurrentSessionUser().getId().toString(),
+            userService.getCurrentSessionUser().getUsername(),
+            userService.getCurrentSessionUser().getEmail(),
+            message,
+            LocalDateTime.now().toString()
+    );
+
+    notificationEventProducer.publishEvent(event, "topic-account");
   }
 }

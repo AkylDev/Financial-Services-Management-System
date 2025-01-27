@@ -2,13 +2,16 @@ package kz.projects.ams.services.impl;
 
 import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.exceptions.AdvisorySessionOrderException;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserAdvisorySessionService;
 import kz.projects.ams.services.UserService;
+import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,6 +25,8 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   private final WebClient.Builder webClientBuilder;
 
   private final UserService userService;
+
+  private final NotificationEventProducer notificationEventProducer;
 
   /**
    * Заказывает консультационную сессию для текущего пользователя.
@@ -52,6 +57,9 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
       if (response == null) {
         throw new AdvisorySessionOrderException("Failed to order advisory session");
       }
+
+      publishEvent("You have successfully ordered advisory with ID " + response.id() +
+              " on " + request.date() + " at " + request.time());
       return response;
     } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to order advisory session", e);
@@ -148,6 +156,9 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
               .retrieve()
               .bodyToMono(AdvisorySessionDTO.class)
               .block();
+
+      publishEvent("You have successfully rescheduled your advisory session with ID " + request.id() +
+              " to " + request.date() + " at " + request.time());
     } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to reschedule advisory session", e);
     }
@@ -173,9 +184,21 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
               .retrieve()
               .toBodilessEntity()
               .block();
-
+      publishEvent("You have successfully deleted your advisory session with ID " + id);
     } catch (WebClientResponseException e) {
       throw new AdvisorySessionOrderException("Failed to delete advisory session", e);
     }
+  }
+
+  private void publishEvent(String message) {
+    NotificationEvent event = new NotificationEvent(
+            userService.getCurrentSessionUser().getId().toString(),
+            userService.getCurrentSessionUser().getUsername(),
+            userService.getCurrentSessionUser().getEmail(),
+            message,
+            LocalDateTime.now().toString()
+    );
+
+    notificationEventProducer.publishEvent(event, "topic-account");
   }
 }

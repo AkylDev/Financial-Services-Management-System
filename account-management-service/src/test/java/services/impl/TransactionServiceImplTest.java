@@ -12,6 +12,7 @@ import kz.projects.ams.models.User;
 import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.repositories.TransactionRepository;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.TransactionServiceImpl;
 import org.junit.Test;
@@ -43,6 +44,9 @@ public class TransactionServiceImplTest {
 
   @Mock
   private UserService userService;
+
+  @Mock
+  private NotificationEventProducer notificationEventProducer;
 
   @InjectMocks
   private TransactionServiceImpl transactionService;

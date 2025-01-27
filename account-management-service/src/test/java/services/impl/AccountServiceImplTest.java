@@ -8,6 +8,7 @@ import kz.projects.ams.models.Account;
 import kz.projects.ams.models.User;
 import kz.projects.ams.models.enums.AccountType;
 import kz.projects.ams.repositories.AccountRepository;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.AccountServiceImpl;
 import org.junit.Before;
@@ -43,6 +44,9 @@ public class AccountServiceImplTest {
   private SecurityContext securityContext;
 
   @Mock
+  private NotificationEventProducer notificationEventProducer;
+
+  @Mock
   private UserService userService;
 
   @InjectMocks
@@ -59,6 +63,9 @@ public class AccountServiceImplTest {
 
   @Test
   public void testCreateAccount() {
+    User currentUser = new User();
+    currentUser.setId(1L);
+
     AccountDTO accountDTO = new AccountDTO(
             null,
             "test@example.com",
@@ -70,6 +77,7 @@ public class AccountServiceImplTest {
     account.setId(1L);
     Mockito.when(accountMapper.toDto(Mockito.any(Account.class))).thenReturn(accountDTO);
     Mockito.when(accountRepository.save(Mockito.any(Account.class))).thenReturn(account);
+    Mockito.when(userService.getCurrentSessionUser()).thenReturn(currentUser);
 
     AccountDTO createdAccount = accountService.createAccount(accountDTO);
 

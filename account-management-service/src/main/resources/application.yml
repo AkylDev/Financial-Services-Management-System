@@ -5,6 +5,9 @@ spring:
   application:
     name: account-management-service
 
+  kafka:
+    bootstrap-servers: localhost:29092
+
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
@@ -13,7 +16,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
     open-in-view: true
 
 webclient:

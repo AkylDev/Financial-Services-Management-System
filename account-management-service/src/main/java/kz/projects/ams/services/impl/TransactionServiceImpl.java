@@ -13,11 +13,14 @@ import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.models.User;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.repositories.TransactionRepository;
+import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserService;
+import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +41,8 @@ public class TransactionServiceImpl implements TransactionService {
   private final TransactionMapper transactionMapper;
 
   private final UserService userService;
+
+  private final NotificationEventProducer notificationEventProducer;
 
   /**
    * Выполняет операцию пополнения счета.
@@ -74,6 +79,9 @@ public class TransactionServiceImpl implements TransactionService {
     transaction.setDate(new Date());
 
     Transaction savedTransaction = transactionRepository.save(transaction);
+
+    publishEvent("You have successfully deposit " + request.amount() + " to your account with ID " + account.getId()
+    + " and type " + account.getAccountType());
     return transactionMapper.toDto(savedTransaction);
   }
 
@@ -116,6 +124,9 @@ public class TransactionServiceImpl implements TransactionService {
     transaction.setDate(new Date());
 
     Transaction savedTransaction = transactionRepository.save(transaction);
+
+    publishEvent("You have successfully withdraw " + request.amount() + " from your account with ID " + account.getId()
+            + " and type " + account.getAccountType());
     return transactionMapper.toDto(savedTransaction);
   }
 
@@ -165,6 +176,9 @@ public class TransactionServiceImpl implements TransactionService {
     transaction.setDate(new Date());
 
     Transaction savedTransaction = transactionRepository.save(transaction);
+
+    publishEvent("You have successfully transfer " + request.amount() + " to your account with ID " + request.toAccount()
+            + " from your account with ID " + request.fromAccount());
     return transactionMapper.toDto(savedTransaction);
   }
 
@@ -180,5 +194,17 @@ public class TransactionServiceImpl implements TransactionService {
     return transactions.stream()
             .map(transactionMapper::toDto)
             .collect(Collectors.toList());
+  }
+
+  private void publishEvent(String message) {
+    NotificationEvent event = new NotificationEvent(
+            userService.getCurrentSessionUser().getId().toString(),
+            userService.getCurrentSessionUser().getUsername(),
+            userService.getCurrentSessionUser().getEmail(),
+            message,
+            LocalDateTime.now().toString()
+    );
+
+    notificationEventProducer.publishEvent(event, "topic-account");
   }
 }
