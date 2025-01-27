@@ -1,4 +1,4 @@
-package kz.projects.ams.models.enums;
+package kz.projects.commonlib.dto.enums;
 
 public enum AdvisorSpecialization {
   ACCOUNTANT,

@@ -1,9 +1,9 @@
 package service.impl;
 
+import kz.projects.commonlib.dto.enums.AdvisorSpecialization;
 import kz.projects.ias.dto.FinancialAdvisorDTO;
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
 import kz.projects.ias.models.FinancialAdvisor;
-import kz.projects.ias.models.enums.AdvisorSpecialization;
 import kz.projects.ias.repositories.FinancialAdvisorRepository;
 import kz.projects.ias.service.impl.FinancialAdvisorServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

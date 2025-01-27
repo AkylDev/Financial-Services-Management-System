@@ -1,11 +1,11 @@
 package kz.projects.ams.services;
 
-import kz.projects.ams.dto.AdvisorySessionDTO;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 
 import java.util.List;
 
 public interface UserAdvisorySessionService {
-  AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request);
+  AdvisorySessionDTO orderAdvisorySession(kz.projects.commonlib.dto.AdvisorySessionDTO request);
 
   List<AdvisorySessionDTO> getAdvisorySessionsPlanned();
 

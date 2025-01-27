@@ -2,11 +2,11 @@ package services.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.models.User;
 import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.UserAdvisorySessionServiceImpl;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;

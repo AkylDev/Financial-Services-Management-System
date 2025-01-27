@@ -55,13 +55,15 @@ public class FinancialAdvisorServiceImpl implements FinancialAdvisorService {
    */
   @Override
   public void deleteFinancialAdvisor(Long id) {
+    financialAdvisorValidation(id);
+    financialAdvisorRepository.deleteById(id);
+  }
 
+  private void financialAdvisorValidation(Long id) {
     Optional<FinancialAdvisor> financialAdvisorOptional = financialAdvisorRepository.findById(id);
 
-    if (financialAdvisorOptional.isEmpty()){
+    if (financialAdvisorOptional.isEmpty()) {
       throw new FinancialAdvisorNotFoundException("Financial Advisor not found");
     }
-
-    financialAdvisorRepository.deleteById(id);
   }
 }

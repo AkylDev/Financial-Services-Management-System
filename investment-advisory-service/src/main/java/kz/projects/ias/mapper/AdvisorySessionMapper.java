@@ -1,6 +1,6 @@
 package kz.projects.ias.mapper;
 
-import kz.projects.ias.dto.AdvisorySessionDTO;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 import kz.projects.ias.models.AdvisorySession;
 import kz.projects.ias.models.FinancialAdvisor;
 import kz.projects.ias.models.enums.RequestStatus;

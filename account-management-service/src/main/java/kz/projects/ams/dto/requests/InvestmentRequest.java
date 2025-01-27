@@ -1,6 +1,6 @@
 package kz.projects.ams.dto.requests;
 
-import kz.projects.ams.dto.responses.InvestmentType;
+import kz.projects.commonlib.dto.enums.InvestmentType;
 
 public record InvestmentRequest(
         Long id,

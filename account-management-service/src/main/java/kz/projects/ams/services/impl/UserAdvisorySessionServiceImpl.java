@@ -1,12 +1,13 @@
 package kz.projects.ams.services.impl;
 
-import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.exceptions.AdvisorySessionOrderException;
 import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserAdvisorySessionService;
 import kz.projects.ams.services.UserService;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -23,10 +24,12 @@ import java.util.List;
 public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionService {
 
   private final WebClient.Builder webClientBuilder;
-
   private final UserService userService;
-
   private final NotificationEventProducer notificationEventProducer;
+
+  private static final String ADVISORY_SESSIONS_URI = "/advisory-sessions";
+  private static final String ADVISERS_SESSIONS_URI = "/advisory-sessions/advisers";
+  private static final String TOPIC_NAME = "topic-advisory";
 
   /**
    * Заказывает консультационную сессию для текущего пользователя.
@@ -38,7 +41,8 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   @Override
   public AdvisorySessionDTO orderAdvisorySession(AdvisorySessionDTO request) {
     Long currentUserId = userService.getCurrentSessionUser().getId();
-    request = new AdvisorySessionDTO(
+
+    AdvisorySessionDTO sessionRequest = new AdvisorySessionDTO(
             request.id(),
             currentUserId,
             request.advisoryId(),
@@ -46,24 +50,18 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
             request.time()
     );
 
-    try {
-      AdvisorySessionDTO response = webClientBuilder.build()
-              .post()
-              .uri("/advisory-sessions")
-              .bodyValue(request)
-              .retrieve()
-              .bodyToMono(AdvisorySessionDTO.class)
-              .block();
-      if (response == null) {
-        throw new AdvisorySessionOrderException("Failed to order advisory session");
-      }
+    AdvisorySessionDTO response = executeWebClientCall(
+            webClientBuilder.build()
+                    .post()
+                    .uri(ADVISORY_SESSIONS_URI)
+                    .bodyValue(sessionRequest),
+            AdvisorySessionDTO.class,
+            "Failed to order advisory session"
+    );
 
-      publishEvent("You have successfully ordered advisory with ID " + response.id() +
-              " on " + request.date() + " at " + request.time());
-      return response;
-    } catch (WebClientResponseException e) {
-      throw new AdvisorySessionOrderException("Failed to order advisory session", e);
-    }
+    publishEvent("You have successfully ordered advisory with ID " + response.id() +
+            " on " + response.date() + " at " + response.time());
+    return response;
   }
 
   /**
@@ -76,26 +74,16 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   public List<AdvisorySessionDTO> getAdvisorySessionsPlanned() {
     Long currentUserId = userService.getCurrentSessionUser().getId();
 
-    try {
-      List<AdvisorySessionDTO> advisorySessions = webClientBuilder.build()
-              .get()
-              .uri(uriBuilder -> uriBuilder
-                      .path("/advisory-sessions")
-                      .queryParam("userId", currentUserId)
-                      .build())
-              .retrieve()
-              .bodyToFlux(AdvisorySessionDTO.class)
-              .collectList()
-              .block();
-
-      if (advisorySessions == null) {
-        throw new AdvisorySessionOrderException("Failed to get advisory sessions");
-      }
-
-      return advisorySessions;
-    } catch (WebClientResponseException e) {
-      throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
-    }
+    return executeWebClientCall(
+            webClientBuilder.build()
+                    .get()
+                    .uri(uriBuilder -> uriBuilder.path(ADVISORY_SESSIONS_URI)
+                            .queryParam("userId", currentUserId)
+                            .build()),
+            new ParameterizedTypeReference<>() {
+            },
+            "Failed to get advisory sessions"
+    );
   }
 
   /**
@@ -107,26 +95,17 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   @Override
   public List<AdvisorySessionDTO> getAdvisersSessions() {
     String email = userService.getCurrentSessionUser().getEmail();
-    try {
-      List<AdvisorySessionDTO> response = webClientBuilder.build()
-              .get()
-              .uri(uriBuilder -> uriBuilder
-                      .path("/advisory-sessions/advisers")
-                      .queryParam("email", email)
-                      .build()
-              )
-              .retrieve()
-              .bodyToFlux(AdvisorySessionDTO.class)
-              .collectList()
-              .block();
 
-      if (response == null || response.isEmpty()) {
-        throw new AdvisorySessionOrderException("Failed to get advisory sessions");
-      }
-      return response;
-    } catch (WebClientResponseException e) {
-      throw new AdvisorySessionOrderException("Failed to get advisory sessions", e);
-    }
+    return executeWebClientCall(
+            webClientBuilder.build()
+                    .get()
+                    .uri(uriBuilder -> uriBuilder.path(ADVISERS_SESSIONS_URI)
+                            .queryParam("email", email)
+                            .build()),
+            new ParameterizedTypeReference<>() {
+            },
+            "Failed to get adviser sessions"
+    );
   }
 
   /**
@@ -139,7 +118,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   @Override
   public void rescheduleAdvisorySession(Long id, AdvisorySessionDTO request) {
     Long currentUserId = userService.getCurrentSessionUser().getId();
-    request = new AdvisorySessionDTO(
+    AdvisorySessionDTO sessionRequest = new AdvisorySessionDTO(
             id,
             currentUserId,
             request.advisoryId(),
@@ -147,21 +126,17 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
             request.time()
     );
 
-    try {
+    executeWebClientCall(
+            webClientBuilder.build()
+                    .put()
+                    .uri(ADVISORY_SESSIONS_URI)
+                    .bodyValue(sessionRequest),
+            Void.class,
+            "Failed to reschedule advisory session"
+    );
 
-      webClientBuilder.build()
-              .put()
-              .uri("/advisory-sessions")
-              .bodyValue(request)
-              .retrieve()
-              .bodyToMono(AdvisorySessionDTO.class)
-              .block();
-
-      publishEvent("You have successfully rescheduled your advisory session with ID " + request.id() +
-              " to " + request.date() + " at " + request.time());
-    } catch (WebClientResponseException e) {
-      throw new AdvisorySessionOrderException("Failed to reschedule advisory session", e);
-    }
+    publishEvent("You have successfully rescheduled your advisory session with ID " + id +
+            " to " + sessionRequest.date() + " at " + sessionRequest.time());
   }
 
   /**
@@ -173,21 +148,19 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   @Override
   public void deleteAdvisorySession(Long id) {
     Long currentUserId = userService.getCurrentSessionUser().getId();
-    try {
-      webClientBuilder.build()
-              .delete()
-              .uri(uriBuilder -> uriBuilder
-                      .path("/advisory-sessions/{id}")
-                      .queryParam("userId", currentUserId)
-                      .build(id)
-              )
-              .retrieve()
-              .toBodilessEntity()
-              .block();
-      publishEvent("You have successfully deleted your advisory session with ID " + id);
-    } catch (WebClientResponseException e) {
-      throw new AdvisorySessionOrderException("Failed to delete advisory session", e);
-    }
+
+    executeWebClientCall(
+            webClientBuilder.build()
+                    .delete()
+                    .uri(uriBuilder -> uriBuilder
+                            .path(ADVISORY_SESSIONS_URI + "/{id}")
+                            .queryParam("userId", currentUserId)
+                            .build(id)),
+            Void.class,
+            "Failed to delete advisory session"
+    );
+
+    publishEvent("You have successfully deleted your advisory session with ID " + id);
   }
 
   private void publishEvent(String message) {
@@ -199,6 +172,23 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
             LocalDateTime.now().toString()
     );
 
-    notificationEventProducer.publishEvent(event, "topic-account");
+    notificationEventProducer.publishEvent(event, TOPIC_NAME);
+  }
+
+  private <T> T executeWebClientCall(WebClient.RequestHeadersSpec<?> request, Class<T> responseType, String errorMessage) {
+    try {
+      return request.retrieve().bodyToMono(responseType).block();
+    } catch (WebClientResponseException e) {
+      throw new AdvisorySessionOrderException(errorMessage, e);
+    }
+  }
+
+  private <T> T executeWebClientCall(WebClient.RequestHeadersSpec<?> request, ParameterizedTypeReference<T> responseType, String errorMessage) {
+    try {
+      return request.retrieve().bodyToMono(responseType).block();
+    } catch (WebClientResponseException e) {
+      throw new AdvisorySessionOrderException(errorMessage, e);
+    }
   }
 }
+

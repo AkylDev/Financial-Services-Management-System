@@ -1,9 +1,9 @@
 package kz.projects.ias.service.impl;
 
-import jakarta.transaction.Transactional;
-import kz.projects.ias.dto.AdvisorySessionDTO;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 import kz.projects.ias.exceptions.AdvisorySessionNotFoundException;
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
+import kz.projects.ias.exceptions.UnauthorizedAccessException;
 import kz.projects.ias.mapper.AdvisorySessionMapper;
 import kz.projects.ias.models.AdvisorySession;
 import kz.projects.ias.models.CustomerServiceRequest;
@@ -16,30 +16,19 @@ import kz.projects.ias.service.AdvisorySessionService;
 import kz.projects.ias.service.CustomerRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdvisorySessionServiceImpl implements AdvisorySessionService {
 
   private final FinancialAdvisorRepository financialAdvisorRepository;
-
   private final AdvisorySessionRepository advisorySessionRepository;
-
   private final CustomerRequestService customerRequestService;
-
-  private CustomerServiceRequest customerAdvisorySessionRequest(AdvisorySessionDTO request, String advisorName){
-    CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
-    customerServiceRequest.setUserId(request.userId());
-    customerServiceRequest.setRequestType(RequestType.ADVISORY);
-    customerServiceRequest.setDescription("Customer set up advisory session with " +
-            advisorName + " on " + request.date() +
-            " at " + request.time());
-
-    return customerServiceRequest;
-  }
 
   /**
    * Создает новую консультацию и сохраняет ее в базе данных.
@@ -49,7 +38,6 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
    * @return объект {@link AdvisorySessionDTO} с информацией о сохраненной консультации.
    * @throws FinancialAdvisorNotFoundException если финансовый консультант не найден.
    */
-  @Transactional
   @Override
   public AdvisorySessionDTO createAdvisorySession(AdvisorySessionDTO request) {
 
@@ -73,6 +61,7 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
    * @param userId идентификатор пользователя.
    * @return список объектов {@link AdvisorySessionDTO} с консультациями пользователя.
    */
+  @Transactional(readOnly = true)
   @Override
   public List<AdvisorySessionDTO> getAdvisorySessions(Long userId) {
     List<AdvisorySession> sessions = advisorySessionRepository.findAllByUserId(userId);
@@ -88,6 +77,7 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
    * @return список объектов {@link AdvisorySessionDTO} с консультациями консультанта.
    * @throws FinancialAdvisorNotFoundException если финансовый консультант не найден.
    */
+  @Transactional(readOnly = true)
   @Override
   public List<AdvisorySessionDTO> getFinancialAdviserSessions(String email) {
     FinancialAdvisor advisor = financialAdvisorRepository.findByEmail(email)
@@ -105,18 +95,13 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
    *
    * @param request объект {@link AdvisorySessionDTO} с обновленной информацией о консультации.
    * @throws AdvisorySessionNotFoundException если консультация с указанным ID не найдена.
-   * @throws IllegalArgumentException если пользователь не имеет прав на обновление консультации.
+   * @throws UnauthorizedAccessException      если пользователь не имеет прав на обновление консультации.
    */
-  @Transactional
   @Override
   public void updateAdvisorySession(AdvisorySessionDTO request) {
 
-    AdvisorySession session = advisorySessionRepository.findById(request.id())
-            .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
-
-    if (!session.getUserId().equals(request.userId())){
-      throw new IllegalArgumentException("You are not allowed");
-    }
+    AdvisorySession session = getValidatedAdvisorySession(request.id());
+    validateUserAccess(session, request.userId());
 
     session.setUserId(request.userId());
     session.setDate(request.date());
@@ -133,20 +118,15 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
   /**
    * Удаляет консультацию по-указанному ID и создает запрос на обслуживание для удаления.
    *
-   * @param id идентификатор консультации.
+   * @param id     идентификатор консультации.
    * @param userId идентификатор пользователя, инициировавшего удаление.
    * @throws AdvisorySessionNotFoundException если консультация с указанным ID не найдена.
-   * @throws IllegalArgumentException если пользователь не имеет прав на удаление консультации.
+   * @throws UnauthorizedAccessException      если пользователь не имеет прав на удаление консультации.
    */
-  @Transactional
   @Override
   public void deleteAdvisorySession(Long id, Long userId) {
-    AdvisorySession session = advisorySessionRepository.findById(id)
-            .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
-
-    if (!session.getUserId().equals(userId)) {
-      throw new IllegalArgumentException("You are not allowed");
-    }
+    AdvisorySession session = getValidatedAdvisorySession(id);
+    validateUserAccess(session, userId);
 
     CustomerServiceRequest serviceRequest = customerAdvisorySessionRequest(AdvisorySessionMapper.toDto(session),
             session.getFinancialAdvisor().getName());
@@ -154,5 +134,27 @@ public class AdvisorySessionServiceImpl implements AdvisorySessionService {
     customerRequestService.createRequest(serviceRequest);
 
     advisorySessionRepository.deleteById(id);
+  }
+
+  private AdvisorySession getValidatedAdvisorySession(Long id) {
+    return advisorySessionRepository.findById(id)
+            .orElseThrow(() -> new AdvisorySessionNotFoundException("AdvisorySession with this ID not found"));
+  }
+
+  private void validateUserAccess(AdvisorySession session, Long userId) {
+    if (!session.getUserId().equals(userId)) {
+      throw new UnauthorizedAccessException("You are not allowed");
+    }
+  }
+
+  private CustomerServiceRequest customerAdvisorySessionRequest(AdvisorySessionDTO request, String advisorName) {
+    CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
+    customerServiceRequest.setUserId(request.userId());
+    customerServiceRequest.setRequestType(RequestType.ADVISORY);
+    customerServiceRequest.setDescription("Customer set up advisory session with " +
+            advisorName + " on " + request.date() +
+            " at " + request.time());
+
+    return customerServiceRequest;
   }
 }

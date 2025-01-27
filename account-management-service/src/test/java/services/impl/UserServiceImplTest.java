@@ -7,11 +7,11 @@ import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.mapper.UserMapper;
 import kz.projects.ams.models.Permissions;
 import kz.projects.ams.models.User;
-import kz.projects.ams.models.enums.AdvisorSpecialization;
 import kz.projects.ams.repositories.PermissionsRepository;
 import kz.projects.ams.repositories.UserRepository;
 import kz.projects.ams.services.impl.CustomUserDetailsService;
 import kz.projects.ams.services.impl.UserServiceImpl;
+import kz.projects.commonlib.dto.enums.AdvisorSpecialization;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -33,9 +33,15 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {

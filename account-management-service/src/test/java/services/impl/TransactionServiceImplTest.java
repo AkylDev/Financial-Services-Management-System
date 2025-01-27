@@ -257,7 +257,6 @@ public class TransactionServiceImplTest {
     );
 
     Mockito.when(accountRepository.findById(request.fromAccount())).thenReturn(Optional.empty());
-    Mockito.when(accountRepository.findById(request.toAccount())).thenReturn(Optional.empty());
 
     transactionService.transfer(request);
   }

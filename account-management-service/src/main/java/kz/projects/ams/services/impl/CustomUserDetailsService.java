@@ -2,7 +2,7 @@ package kz.projects.ams.services.impl;
 
 import kz.projects.ams.models.User;
 import kz.projects.ams.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,10 +15,9 @@ import java.util.Optional;
  * Использует {@link UserRepository} для поиска пользователя по email.
  */
 @Service
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-  @Autowired
-  private UserRepository userRepository;
-
+  private final UserRepository userRepository;
   /**
    * Загружает {@link UserDetails} по указанному имени пользователя.
    * Если пользователь не найден, выбрасывает {@link UsernameNotFoundException}.
