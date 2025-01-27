@@ -2,10 +2,8 @@ package services.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.projects.ams.dto.TransactionDTO;
-import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.requests.InvestmentRequest;
 import kz.projects.ams.dto.requests.TransactionRequest;
-import kz.projects.ams.dto.responses.BalanceCheckResponse;
 import kz.projects.ams.dto.responses.InvestmentResponse;
 import kz.projects.ams.exceptions.InvestmentOperationException;
 import kz.projects.ams.exceptions.UnauthorizedException;
@@ -18,6 +16,8 @@ import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserService;
 import kz.projects.ams.services.impl.UserInvestmentServiceImpl;
+import kz.projects.commonlib.dto.BalanceCheckRequest;
+import kz.projects.commonlib.dto.BalanceCheckResponse;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -35,7 +35,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 

@@ -1,10 +1,8 @@
 package kz.projects.ams.services.impl;
 
 import kz.projects.ams.dto.TransactionDTO;
-import kz.projects.ams.dto.requests.BalanceCheckRequest;
 import kz.projects.ams.dto.requests.InvestmentRequest;
 import kz.projects.ams.dto.requests.TransactionRequest;
-import kz.projects.ams.dto.responses.BalanceCheckResponse;
 import kz.projects.ams.dto.responses.InvestmentResponse;
 import kz.projects.ams.exceptions.InvestmentOperationException;
 import kz.projects.ams.exceptions.UnauthorizedException;
@@ -15,6 +13,8 @@ import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.TransactionService;
 import kz.projects.ams.services.UserInvestmentService;
 import kz.projects.ams.services.UserService;
+import kz.projects.commonlib.dto.BalanceCheckRequest;
+import kz.projects.commonlib.dto.BalanceCheckResponse;
 import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

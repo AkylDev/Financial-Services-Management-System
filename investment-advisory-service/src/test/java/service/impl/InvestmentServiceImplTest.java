@@ -1,13 +1,13 @@
 package service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kz.projects.ias.dto.BalanceCheckResponse;
+import kz.projects.commonlib.dto.BalanceCheckResponse;
+import kz.projects.commonlib.dto.enums.InvestmentType;
 import kz.projects.ias.dto.InvestmentDTO;
 import kz.projects.ias.exceptions.NotSufficientFundsException;
 import kz.projects.ias.mapper.InvestmentsMapper;
 import kz.projects.ias.models.CustomerServiceRequest;
 import kz.projects.ias.models.Investment;
-import kz.projects.ias.models.enums.InvestmentType;
 import kz.projects.ias.models.enums.RequestType;
 import kz.projects.ias.repositories.InvestmentRepository;
 import kz.projects.ias.service.CustomerRequestService;
@@ -30,9 +30,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class InvestmentServiceImplTest {
 

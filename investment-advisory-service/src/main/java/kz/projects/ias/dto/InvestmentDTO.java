@@ -1,6 +1,6 @@
 package kz.projects.ias.dto;
 
-import kz.projects.ias.models.enums.InvestmentType;
+import kz.projects.commonlib.dto.enums.InvestmentType;
 
 import java.util.Date;
 

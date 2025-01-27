@@ -1,10 +1,10 @@
 package kz.projects.ams.services.impl;
 
-import kz.projects.ams.dto.AdvisorySessionDTO;
 import kz.projects.ams.exceptions.AdvisorySessionOrderException;
 import kz.projects.ams.services.NotificationEventProducer;
 import kz.projects.ams.services.UserAdvisorySessionService;
 import kz.projects.ams.services.UserService;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;

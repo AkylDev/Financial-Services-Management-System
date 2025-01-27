@@ -1,7 +1,7 @@
 package kz.projects.ias.models;
 
 import jakarta.persistence.*;
-import kz.projects.ias.models.enums.AdvisorSpecialization;
+import kz.projects.commonlib.dto.enums.AdvisorSpecialization;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +25,4 @@ public class FinancialAdvisor {
 
   @Enumerated(EnumType.STRING)
   private AdvisorSpecialization specialization;
-
-
 }

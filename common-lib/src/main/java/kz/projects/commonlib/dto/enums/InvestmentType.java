@@ -1,4 +1,4 @@
-package kz.projects.ams.dto.responses;
+package kz.projects.commonlib.dto.enums;
 
 public enum InvestmentType {
   STOCKS,

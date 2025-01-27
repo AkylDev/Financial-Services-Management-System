@@ -1,4 +1,4 @@
-package kz.projects.ias.dto;
+package kz.projects.commonlib.dto;
 
 
 import java.time.LocalDate;

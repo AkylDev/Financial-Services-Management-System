@@ -1,6 +1,6 @@
 package kz.projects.ias.dto;
 
-import kz.projects.ias.models.enums.AdvisorSpecialization;
+import kz.projects.commonlib.dto.enums.AdvisorSpecialization;
 
 public record FinancialAdvisorDTO(
         Long id,

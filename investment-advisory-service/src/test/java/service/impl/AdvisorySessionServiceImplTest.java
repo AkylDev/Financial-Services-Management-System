@@ -1,6 +1,6 @@
 package service.impl;
 
-import kz.projects.ias.dto.AdvisorySessionDTO;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 import kz.projects.ias.exceptions.AdvisorySessionNotFoundException;
 import kz.projects.ias.exceptions.UnauthorizedAccessException;
 import kz.projects.ias.models.AdvisorySession;
@@ -25,7 +25,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AdvisorySessionServiceImplTest {
 

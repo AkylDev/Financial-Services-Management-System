@@ -1,6 +1,7 @@
 package kz.projects.ias.service;
 
-import kz.projects.ias.dto.AdvisorySessionDTO;
+
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 
 import java.util.List;
 

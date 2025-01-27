@@ -1,6 +1,6 @@
 package kz.projects.ias.service.impl;
 
-import kz.projects.ias.dto.AdvisorySessionDTO;
+import kz.projects.commonlib.dto.AdvisorySessionDTO;
 import kz.projects.ias.exceptions.AdvisorySessionNotFoundException;
 import kz.projects.ias.exceptions.FinancialAdvisorNotFoundException;
 import kz.projects.ias.exceptions.UnauthorizedAccessException;

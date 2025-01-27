@@ -1,6 +1,6 @@
 package kz.projects.ams.dto;
 
-import kz.projects.ams.models.enums.AdvisorSpecialization;
+import kz.projects.commonlib.dto.enums.AdvisorSpecialization;
 
 public record AdviserDTO(
         String name,

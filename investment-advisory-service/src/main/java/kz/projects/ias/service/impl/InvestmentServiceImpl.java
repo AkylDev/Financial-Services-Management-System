@@ -1,7 +1,7 @@
 package kz.projects.ias.service.impl;
 
-import kz.projects.ias.dto.BalanceCheckRequest;
-import kz.projects.ias.dto.BalanceCheckResponse;
+import kz.projects.commonlib.dto.BalanceCheckRequest;
+import kz.projects.commonlib.dto.BalanceCheckResponse;
 import kz.projects.ias.dto.InvestmentDTO;
 import kz.projects.ias.exceptions.CheckBalanceException;
 import kz.projects.ias.exceptions.InvestmentNotFoundException;
