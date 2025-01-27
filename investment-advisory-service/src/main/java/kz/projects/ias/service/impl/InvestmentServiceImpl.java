@@ -16,6 +16,7 @@ import kz.projects.ias.service.CustomerRequestService;
 import kz.projects.ias.service.InvestmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -24,85 +25,63 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class InvestmentServiceImpl implements InvestmentService {
 
   private final InvestmentRepository investmentRepository;
-
   private final WebClient.Builder webClientBuilder;
-
   private final CustomerRequestService customerRequestService;
 
-  private CustomerServiceRequest customerInvestmentRequest(InvestmentDTO investment){
-    CustomerServiceRequest customerServiceRequest = new CustomerServiceRequest();
-    customerServiceRequest.setUserId(investment.userId());
-    customerServiceRequest.setRequestType(RequestType.INVESTMENT);
-    customerServiceRequest.setDescription("Customer invested " + investment.amount()
-            + "$ to " + investment.investmentType());
-
-    return customerServiceRequest;
-  }
+  private static final String CHECK_BALANCE_URI = "/api/v1/ams/check-balance";
 
   /**
-   * Создает инвестицию, проверяя наличие достаточных средств на счете.
+   * Creates an investment, checking for sufficient funds first.
    *
-   * @param request объект {@link InvestmentDTO}, содержащий информацию об инвестиции.
-   * @return объект {@link InvestmentDTO}, который был сохранен в базе данных.
-   * @throws NotSufficientFundsException если на счете недостаточно средств для инвестиции.
-   * @throws CheckBalanceException если произошла ошибка при проверке баланса или создании инвестиции.
+   * @param request InvestmentDTO containing the investment data.
+   * @return The saved InvestmentDTO.
+   * @throws NotSufficientFundsException if the account balance is insufficient.
+   * @throws CheckBalanceException       if an error occurs during balance checking or investment creation.
    */
   @Override
   public InvestmentDTO createInvestment(InvestmentDTO request) {
+    BalanceCheckRequest balanceCheckRequest = new BalanceCheckRequest(request.accountId(), request.amount());
 
-    BalanceCheckRequest balanceCheckRequest = new BalanceCheckRequest(
-            request.accountId(),
-            request.amount()
-    );
+    BalanceCheckResponse response = checkBalance(balanceCheckRequest);
 
-    try {
-      BalanceCheckResponse response = webClientBuilder.build()
-              .post()
-              .uri("/api/v1/ams/check-balance")
-              .bodyValue(balanceCheckRequest)
-              .retrieve()
-              .bodyToMono(BalanceCheckResponse.class)
-              .block();
-
-      if (response == null || !response.sufficientFunds()) {
-        throw new NotSufficientFundsException("Insufficient funds");
-      }
-
-      Investment investment = InvestmentsMapper.toEntity(request);
-      investment.setDate(new Date());
-
-      CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
-      serviceRequest.setStatus(RequestStatus.PENDING);
-      customerRequestService.createRequest(serviceRequest);
-
-      Investment savedInvestment = investmentRepository.save(investment);
-
-      return InvestmentsMapper.toDto(savedInvestment);
-    } catch (WebClientResponseException e) {
-      throw new CheckBalanceException("Failed to check balance or create investment", e);
+    if (response == null || !response.sufficientFunds()) {
+      throw new NotSufficientFundsException("Insufficient funds");
     }
+
+    Investment investment = InvestmentsMapper.toEntity(request);
+    investment.setDate(new Date());
+
+    CustomerServiceRequest serviceRequest = createCustomerInvestmentRequest(request);
+    serviceRequest.setStatus(RequestStatus.PENDING);
+    customerRequestService.createRequest(serviceRequest);
+
+    Investment savedInvestment = investmentRepository.save(investment);
+
+    return InvestmentsMapper.toDto(savedInvestment);
   }
 
   /**
-   * Возвращает список всех инвестиций для указанного пользователя.
+   * Returns all investments for a specific user.
    *
-   * @param userId идентификатор пользователя, для которого нужно получить инвестиции.
-   * @return список объектов {@link Investment}, связанных с указанным пользователем.
+   * @param userId The user ID.
+   * @return A list of Investment entities.
    */
+  @Transactional(readOnly = true)
   @Override
   public List<Investment> getAllInvestments(Long userId) {
     return investmentRepository.findAllByUserId(userId);
   }
 
   /**
-   * Обновляет информацию об инвестиции.
+   * Updates an existing investment.
    *
-   * @param request объект {@link InvestmentDTO}, содержащий обновленную информацию об инвестиции.
-   * @throws InvestmentNotFoundException если инвестиция с указанным ID не найдена.
-   * @throws IllegalArgumentException если пользователь не имеет прав для обновления этой инвестиции.
+   * @param request InvestmentDTO with updated data.
+   * @throws InvestmentNotFoundException if the investment is not found.
+   * @throws IllegalArgumentException    if the user does not have permission to update the investment.
    */
   @Override
   public void updateInvestment(InvestmentDTO request) {
@@ -110,7 +89,7 @@ public class InvestmentServiceImpl implements InvestmentService {
             .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
 
     if (!investment.getUserId().equals(request.userId())) {
-      throw new IllegalArgumentException("You are not allowed");
+      throw new IllegalArgumentException("You are not allowed to update this investment");
     }
 
     investment.setInvestmentType(request.investmentType());
@@ -118,7 +97,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     investment.setAmount(request.amount());
     investment.setUserId(request.userId());
 
-    CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
+    CustomerServiceRequest serviceRequest = createCustomerInvestmentRequest(request);
     serviceRequest.setStatus(RequestStatus.CHANGED);
     customerRequestService.createRequest(serviceRequest);
 
@@ -126,12 +105,12 @@ public class InvestmentServiceImpl implements InvestmentService {
   }
 
   /**
-   * Удаляет инвестицию и создает запрос на отмену инвестиции.
+   * Deletes an investment and creates a cancellation request.
    *
-   * @param id идентификатор инвестиции, которую нужно удалить.
-   * @param userId идентификатор пользователя, который запрашивает удаление.
-   * @throws InvestmentNotFoundException если инвестиция с указанным ID не найдена.
-   * @throws IllegalArgumentException если пользователь не имеет прав для удаления этой инвестиции.
+   * @param id     The investment ID to delete.
+   * @param userId The user requesting the deletion.
+   * @throws InvestmentNotFoundException if the investment is not found.
+   * @throws IllegalArgumentException    if the user does not have permission to delete the investment.
    */
   @Override
   public void deleteInvestment(Long id, Long userId) {
@@ -139,15 +118,38 @@ public class InvestmentServiceImpl implements InvestmentService {
             .orElseThrow(() -> new InvestmentNotFoundException("Investment not found"));
 
     if (!investment.getUserId().equals(userId)) {
-      throw new IllegalArgumentException("You are not allowed");
+      throw new IllegalArgumentException("You are not allowed to delete this investment");
     }
 
     InvestmentDTO request = InvestmentsMapper.toDto(investment);
 
-    CustomerServiceRequest serviceRequest = customerInvestmentRequest(request);
+    CustomerServiceRequest serviceRequest = createCustomerInvestmentRequest(request);
     serviceRequest.setStatus(RequestStatus.CANCELLED);
     customerRequestService.createRequest(serviceRequest);
 
     investmentRepository.deleteById(id);
   }
+
+  private CustomerServiceRequest createCustomerInvestmentRequest(InvestmentDTO investment) {
+    CustomerServiceRequest serviceRequest = new CustomerServiceRequest();
+    serviceRequest.setUserId(investment.userId());
+    serviceRequest.setRequestType(RequestType.INVESTMENT);
+    serviceRequest.setDescription("Customer invested " + investment.amount() + " to " + investment.investmentType());
+    return serviceRequest;
+  }
+
+  private BalanceCheckResponse checkBalance(BalanceCheckRequest request) {
+    try {
+      return webClientBuilder.build()
+              .post()
+              .uri(CHECK_BALANCE_URI)
+              .bodyValue(request)
+              .retrieve()
+              .bodyToMono(BalanceCheckResponse.class)
+              .block();
+    } catch (WebClientResponseException e) {
+      throw new CheckBalanceException("Failed to check balance or create investment", e);
+    }
+  }
 }
+

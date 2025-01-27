@@ -40,7 +40,7 @@ public class CustomerRequestServiceImpl implements CustomerRequestService {
   /**
    * Обновляет информацию о запросе на обслуживание.
    *
-   * @param id идентификатор запроса на обслуживание, который нужно обновить.
+   * @param id      идентификатор запроса на обслуживание, который нужно обновить.
    * @param request объект {@link CustomerServiceRequest} с обновленной информацией.
    * @return обновленный объект {@link CustomerServiceRequest}.
    * @throws CustomerServiceRequestNotFoundException если запрос с указанным ID не найден.
@@ -49,7 +49,7 @@ public class CustomerRequestServiceImpl implements CustomerRequestService {
   public CustomerServiceRequest updateRequests(Long id, CustomerServiceRequest request) {
     Optional<CustomerServiceRequest> customerRequestOptional = customerRequestRepository.findById(id);
 
-    if (customerRequestOptional.isEmpty()){
+    if (customerRequestOptional.isEmpty()) {
       throw new CustomerServiceRequestNotFoundException("Customer Request Not Found!");
     }
 

@@ -2,6 +2,7 @@ package service.impl;
 
 import kz.projects.ias.dto.AdvisorySessionDTO;
 import kz.projects.ias.exceptions.AdvisorySessionNotFoundException;
+import kz.projects.ias.exceptions.UnauthorizedAccessException;
 import kz.projects.ias.models.AdvisorySession;
 import kz.projects.ias.models.CustomerServiceRequest;
 import kz.projects.ias.models.FinancialAdvisor;
@@ -213,8 +214,8 @@ public class AdvisorySessionServiceImplTest {
     when(advisorySessionRepository.findById(sessionId)).thenReturn(Optional.of(createAdvisorySession(sessionId, 1L, LocalDate.of(2024, 7, 20), LocalTime.of(10, 0), RequestStatus.PENDING)));
 
     // Test and assert IllegalArgumentException
-    IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+    UnauthorizedAccessException exception = assertThrows(
+            UnauthorizedAccessException.class,
             () -> advisorySessionService.deleteAdvisorySession(sessionId, userId)
     );
 
