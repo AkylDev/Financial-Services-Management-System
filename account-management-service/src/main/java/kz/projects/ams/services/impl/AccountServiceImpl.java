@@ -13,10 +13,10 @@ import kz.projects.ams.services.UserService;
 import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -25,15 +25,15 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AccountServiceImpl implements AccountService {
 
   private final AccountRepository accountRepository;
-
   private final AccountMapper accountMapper;
-
   private final UserService userService;
-
   private final NotificationEventProducer notificationEventProducer;
+
+  private static final String TOPIC_NAME = "topic-account";
 
   /**
    * Создает новый аккаунт для текущего пользователя.
@@ -43,15 +43,17 @@ public class AccountServiceImpl implements AccountService {
    */
   @Override
   public AccountDTO createAccount(AccountDTO accountRequest) {
+    validateBalance(accountRequest.balance());
+
     Account account = new Account();
     account.setUser(userService.getCurrentSessionUser());
     account.setAccountType(accountRequest.accountType());
     account.setBalance(accountRequest.balance());
 
-    publishEvent("You have successfully created account with type " + accountRequest.accountType() +
-            " and balance " + accountRequest.balance());
+    Account savedAccount = accountRepository.save(account);
+    publishEvent(savedAccount, "created");
 
-    return accountMapper.toDto(accountRepository.save(account));
+    return accountMapper.toDto(savedAccount);
   }
 
   /**
@@ -60,10 +62,10 @@ public class AccountServiceImpl implements AccountService {
    * @return список {@link AccountDTO} объектов, представляющих аккаунты текущего пользователя
    */
   @Override
+  @Transactional(readOnly = true)
   public List<AccountDTO> findAccountsByUserId() {
     User currentUser = userService.getCurrentSessionUser();
-    List<Account> accounts = accountRepository.findAllByUser(currentUser);
-    return accounts.stream()
+    return accountRepository.findAllByUser(currentUser).stream()
             .map(accountMapper::toDto)
             .collect(Collectors.toList());
   }
@@ -80,28 +82,18 @@ public class AccountServiceImpl implements AccountService {
    */
   @Override
   public AccountDTO updateAccount(Long id, AccountDTO request) {
-    if (request.balance() < 0) {
-      throw new IllegalArgumentException("Balance cannot be negative");
-    }
+    validateBalance(request.balance());
 
-    Optional<Account> accountOptional = accountRepository.findById(id);
-    if (accountOptional.isEmpty()) {
-      throw new UserAccountNotFoundException("Account not found");
-    }
-
-    Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())) {
-      throw new UnauthorizedException("You are not authorized to change this account");
-    }
+    Account account = getValidatedAccount(id);
+    validateUserAccess(account);
 
     account.setAccountType(request.accountType());
     account.setBalance(request.balance());
 
-    publishEvent("You have successfully updated your account with id " + account.getId() +
-            " to type " + account.getAccountType() +
-            " and balance " + account.getBalance());
+    Account updatedAccount = accountRepository.save(account);
+    publishEvent(updatedAccount, "updated");
 
-    return accountMapper.toDto(accountRepository.save(account));
+    return accountMapper.toDto(updatedAccount);
   }
 
   /**
@@ -114,24 +106,37 @@ public class AccountServiceImpl implements AccountService {
    */
   @Override
   public void deleteAccount(Long id) {
-    Optional<Account> accountOptional = accountRepository.findById(id);
-    if (accountOptional.isEmpty()) {
-      throw new UserAccountNotFoundException("Account not found");
-    }
+    Account account = getValidatedAccount(id);
+    validateUserAccess(account);
 
-    Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())) {
-      throw new UnauthorizedException("You are not authorized to delete this account");
-    }
-
-    accountRepository.deleteById(id);
-
-    publishEvent("You have successfully deleted your account with id " + account.getId() +
-            " type " + account.getAccountType() +
-            " and balance " + account.getBalance());
+    accountRepository.delete(account);
+    publishEvent(account, "deleted");
   }
 
-  private void publishEvent(String message) {
+  private void validateBalance(double balance) {
+    if (balance < 0) {
+      throw new IllegalArgumentException("Balance cannot be negative");
+    }
+  }
+
+  private Account getValidatedAccount(Long id) {
+    return accountRepository.findById(id)
+            .orElseThrow(() -> new UserAccountNotFoundException("Account not found"));
+  }
+
+  private void validateUserAccess(Account account) {
+    Long currentUserId = userService.getCurrentSessionUser().getId();
+    if (!account.getUser().getId().equals(currentUserId)) {
+      throw new UnauthorizedException("You are not authorized to access this account");
+    }
+  }
+
+  private void publishEvent(Account account, String action) {
+    String message = String.format(
+            "You have successfully %s your account with id %d, type %s, and balance %.2f",
+            action, account.getId(), account.getAccountType(), account.getBalance()
+    );
+
     NotificationEvent event = new NotificationEvent(
             userService.getCurrentSessionUser().getId().toString(),
             userService.getCurrentSessionUser().getUsername(),
@@ -140,6 +145,6 @@ public class AccountServiceImpl implements AccountService {
             LocalDateTime.now().toString()
     );
 
-    notificationEventProducer.publishEvent(event, "topic-account");
+    notificationEventProducer.publishEvent(event, TOPIC_NAME);
   }
 }

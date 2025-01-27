@@ -9,8 +9,8 @@ import kz.projects.ams.exceptions.UserAccountNotFoundException;
 import kz.projects.ams.mapper.TransactionMapper;
 import kz.projects.ams.models.Account;
 import kz.projects.ams.models.Transaction;
-import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.models.User;
+import kz.projects.ams.models.enums.TransactionType;
 import kz.projects.ams.repositories.AccountRepository;
 import kz.projects.ams.repositories.TransactionRepository;
 import kz.projects.ams.services.NotificationEventProducer;
@@ -19,11 +19,11 @@ import kz.projects.ams.services.UserService;
 import kz.projects.commonlib.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -32,17 +32,16 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TransactionServiceImpl implements TransactionService {
 
   private final AccountRepository accountRepository;
-
   private final TransactionRepository transactionRepository;
-
   private final TransactionMapper transactionMapper;
-
   private final UserService userService;
-
   private final NotificationEventProducer notificationEventProducer;
+
+  private static final String TOPIC_NAME = "topic-transactions";
 
   /**
    * Выполняет операцию пополнения счета.
@@ -55,34 +54,17 @@ public class TransactionServiceImpl implements TransactionService {
    */
   @Override
   public TransactionDTO deposit(TransactionRequest request) {
-    if (request.amount() <= 0) {
-      throw new IllegalArgumentException("Deposit amount must be greater than zero");
-    }
-
-    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
-    if (accountOptional.isEmpty()){
-      throw new UserAccountNotFoundException("Account Not Found!");
-    }
-
-    Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
-      throw new UnauthorizedException("You are not allowed");
-    }
+    validateAmount(request.amount());
+    Account account = getValidatedAccount(request.accountId());
+    validateUserAccess(account);
 
     account.setBalance(account.getBalance() + request.amount());
     accountRepository.save(account);
 
-    Transaction transaction = new Transaction();
-    transaction.setAccount(account);
-    transaction.setType(TransactionType.DEPOSIT);
-    transaction.setAmount(request.amount());
-    transaction.setDate(new Date());
+    Transaction transaction = saveTransaction(account, TransactionType.DEPOSIT, request.amount());
+    publishEvent(account, request.amount(), "deposit");
 
-    Transaction savedTransaction = transactionRepository.save(transaction);
-
-    publishEvent("You have successfully deposit " + request.amount() + " to your account with ID " + account.getId()
-    + " and type " + account.getAccountType());
-    return transactionMapper.toDto(savedTransaction);
+    return transactionMapper.toDto(transaction);
   }
 
   /**
@@ -96,19 +78,9 @@ public class TransactionServiceImpl implements TransactionService {
    */
   @Override
   public TransactionDTO withdraw(TransactionRequest request) {
-    if (request.amount() <= 0) {
-      throw new IllegalArgumentException("Withdrawal amount must be greater than zero");
-    }
-
-    Optional<Account> accountOptional = accountRepository.findById(request.accountId());
-    if (accountOptional.isEmpty()){
-      throw new UserAccountNotFoundException("Account Not Found!");
-    }
-
-    Account account = accountOptional.get();
-    if (!account.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
-      throw new UnauthorizedException("You are not allowed");
-    }
+    validateAmount(request.amount());
+    Account account = getValidatedAccount(request.accountId());
+    validateUserAccess(account);
 
     if (account.getBalance() < request.amount()) {
       throw new InsufficientFundsException("Insufficient funds");
@@ -117,17 +89,10 @@ public class TransactionServiceImpl implements TransactionService {
     account.setBalance(account.getBalance() - request.amount());
     accountRepository.save(account);
 
-    Transaction transaction = new Transaction();
-    transaction.setAccount(account);
-    transaction.setType(TransactionType.WITHDRAWAL);
-    transaction.setAmount(request.amount());
-    transaction.setDate(new Date());
+    Transaction transaction = saveTransaction(account, TransactionType.WITHDRAWAL, request.amount());
+    publishEvent(account, request.amount(), "withdrawal");
 
-    Transaction savedTransaction = transactionRepository.save(transaction);
-
-    publishEvent("You have successfully withdraw " + request.amount() + " from your account with ID " + account.getId()
-            + " and type " + account.getAccountType());
-    return transactionMapper.toDto(savedTransaction);
+    return transactionMapper.toDto(transaction);
   }
 
   /**
@@ -141,23 +106,12 @@ public class TransactionServiceImpl implements TransactionService {
    */
   @Override
   public TransactionDTO transfer(TransferRequest request) {
-    if (request.amount() <= 0) {
-      throw new IllegalArgumentException("Transfer amount must be greater than zero");
-    }
+    validateAmount(request.amount());
 
-    Optional<Account> fromAccountOptional = accountRepository.findById(request.fromAccount());
-    Optional<Account> toAccountOptional = accountRepository.findById(request.toAccount());
+    Account fromAccount = getValidatedAccount(request.fromAccount());
+    Account toAccount = getValidatedAccount(request.toAccount());
 
-    if (fromAccountOptional.isEmpty() || toAccountOptional.isEmpty()){
-      throw new UserAccountNotFoundException("Account not found");
-    }
-
-    Account fromAccount = fromAccountOptional.get();
-    Account toAccount = toAccountOptional.get();
-
-    if (!fromAccount.getUser().getId().equals(userService.getCurrentSessionUser().getId())){
-      throw new UnauthorizedException("You are not allowed");
-    }
+    validateUserAccess(fromAccount);
 
     if (fromAccount.getBalance() < request.amount()) {
       throw new InsufficientFundsException("Insufficient funds");
@@ -169,17 +123,10 @@ public class TransactionServiceImpl implements TransactionService {
     accountRepository.save(fromAccount);
     accountRepository.save(toAccount);
 
-    Transaction transaction = new Transaction();
-    transaction.setAccount(fromAccount);
-    transaction.setType(TransactionType.TRANSFER);
-    transaction.setAmount(request.amount());
-    transaction.setDate(new Date());
+    Transaction transaction = saveTransaction(fromAccount, TransactionType.TRANSFER, request.amount());
+    publishEvent(fromAccount, request.amount(), "transfer to account ID " + request.toAccount());
 
-    Transaction savedTransaction = transactionRepository.save(transaction);
-
-    publishEvent("You have successfully transfer " + request.amount() + " to your account with ID " + request.toAccount()
-            + " from your account with ID " + request.fromAccount());
-    return transactionMapper.toDto(savedTransaction);
+    return transactionMapper.toDto(transaction);
   }
 
   /**
@@ -188,23 +135,54 @@ public class TransactionServiceImpl implements TransactionService {
    * @return список {@link TransactionDTO} объектов, представляющих транзакции текущего пользователя
    */
   @Override
+  @Transactional(readOnly = true)
   public List<TransactionDTO> getTransactions() {
     User currentUser = userService.getCurrentSessionUser();
-    List<Transaction> transactions = transactionRepository.findAllByUserId(currentUser.getId());
-    return transactions.stream()
+    return transactionRepository.findAllByUserId(currentUser.getId())
+            .stream()
             .map(transactionMapper::toDto)
             .collect(Collectors.toList());
   }
 
-  private void publishEvent(String message) {
+  private void validateAmount(double amount) {
+    if (amount <= 0) {
+      throw new IllegalArgumentException("Amount must be greater than zero");
+    }
+  }
+
+  private Account getValidatedAccount(Long accountId) {
+    return accountRepository.findById(accountId)
+            .orElseThrow(() -> new UserAccountNotFoundException("Account Not Found!"));
+  }
+
+  private void validateUserAccess(Account account) {
+    Long currentUserId = userService.getCurrentSessionUser().getId();
+    if (!account.getUser().getId().equals(currentUserId)) {
+      throw new UnauthorizedException("You are not allowed to access this account");
+    }
+  }
+
+  private Transaction saveTransaction(Account account, TransactionType type, double amount) {
+    Transaction transaction = new Transaction();
+    transaction.setAccount(account);
+    transaction.setType(type);
+    transaction.setAmount(amount);
+    transaction.setDate(new Date());
+    return transactionRepository.save(transaction);
+  }
+
+  private void publishEvent(Account account, double amount, String operation) {
     NotificationEvent event = new NotificationEvent(
             userService.getCurrentSessionUser().getId().toString(),
             userService.getCurrentSessionUser().getUsername(),
             userService.getCurrentSessionUser().getEmail(),
-            message,
+            "Operation went successfully! " + "\n" +
+                    "Operation: " + operation + "\n" +
+                    "Amount: " + amount + "\n" +
+                    "Account ID: " + account.getId() + "\n" +
+                    "Account Type: " + account.getAccountType() + "\n",
             LocalDateTime.now().toString()
     );
-
-    notificationEventProducer.publishEvent(event, "topic-account");
+    notificationEventProducer.publishEvent(event, TOPIC_NAME);
   }
 }

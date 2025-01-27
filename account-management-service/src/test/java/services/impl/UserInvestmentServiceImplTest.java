@@ -140,23 +140,6 @@ public class UserInvestmentServiceImplTest {
   }
 
   @Test
-  public void testUpdateInvestment_Success() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-
-    mockWebServer.enqueue(new MockResponse().setResponseCode(204));
-
-    assertDoesNotThrow(() -> userInvestmentService.updateInvestment(1L, investmentRequest));
-  }
-
-  @Test
-  public void testUpdateInvestment_WebClientResponseException() {
-    when(userService.getCurrentSessionUser()).thenReturn(user);
-    mockWebServer.enqueue(new MockResponse().setResponseCode(500));
-
-    assertThrows(InvestmentOperationException.class, () -> userInvestmentService.updateInvestment(1L, investmentRequest));
-  }
-
-  @Test
   public void testDeleteInvestment_Success() {
     when(userService.getCurrentSessionUser()).thenReturn(user);
 

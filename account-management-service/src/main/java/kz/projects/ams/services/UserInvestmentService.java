@@ -11,8 +11,6 @@ public interface UserInvestmentService {
 
   InvestmentResponse toInvest(InvestmentRequest request);
 
-  void updateInvestment(Long id, InvestmentRequest request);
-
   void deleteInvestment(Long id);
 
   List<InvestmentResponse> getAllUsersInvestments();

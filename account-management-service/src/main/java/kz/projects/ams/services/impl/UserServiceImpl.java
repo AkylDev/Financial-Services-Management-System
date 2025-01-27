@@ -2,8 +2,8 @@ package kz.projects.ams.services.impl;
 
 import com.sun.jdi.InternalException;
 import kz.projects.ams.dto.AdviserDTO;
-import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.dto.UserDTO;
+import kz.projects.ams.dto.requests.LoginRequest;
 import kz.projects.ams.mapper.UserMapper;
 import kz.projects.ams.models.Permissions;
 import kz.projects.ams.models.User;
@@ -25,7 +25,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * Реализация {@link UserService} для управления пользователями.
@@ -36,16 +35,13 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
-
   private final PermissionsRepository permissionsRepository;
-
   private final PasswordEncoder passwordEncoder;
-
   private final CustomUserDetailsService userDetailsService;
-
   private final UserMapper userMapper;
-
   private final WebClient.Builder webClientBuilder;
+
+  private static final String FINANCIAL_ADVISOR_URI = "/financial-advisors";
 
   /**
    * Регистрирует нового пользователя.
@@ -57,24 +53,8 @@ public class UserServiceImpl implements UserService {
    */
   @Override
   public UserDTO register(UserDTO registerRequest) {
-    Optional<User> checkUser = userRepository.findByEmail(registerRequest.email());
-    if (checkUser.isPresent()) {
-      throw new IllegalArgumentException("User with this email already exists.");
-    }
-
-    User newUser = new User();
-    newUser.setName(registerRequest.name());
-    newUser.setEmail(registerRequest.email());
-    newUser.setPassword(passwordEncoder.encode(registerRequest.password()));
-
-    Permissions defaultPermission = permissionsRepository.findByRole("ROLE_USER");
-    if (defaultPermission == null) {
-      defaultPermission = new Permissions();
-      defaultPermission.setRole("ROLE_USER");
-      defaultPermission = permissionsRepository.save(defaultPermission);
-    }
-    newUser.setPermissionList(Collections.singletonList(defaultPermission));
-
+    checkIfUserExists(registerRequest.email());
+    User newUser = createUser(registerRequest.email(), registerRequest.name(), registerRequest.password(), "ROLE_USER");
     return userMapper.toDto(userRepository.save(newUser));
   }
 
@@ -83,7 +63,7 @@ public class UserServiceImpl implements UserService {
    * Проверяет предоставленные учетные данные и устанавливает аутентификацию в Security контекст.
    *
    * @param request запрос на вход в систему
-   * @return {@link UserDetails} объект, представляющий аутентифицированного пользователя
+   * @return {@link UserDTO} объект, представляющий аутентифицированного пользователя
    * @throws UsernameNotFoundException если предоставленные учетные данные неверны
    */
   @Override
@@ -107,41 +87,15 @@ public class UserServiceImpl implements UserService {
    * @param adviser запрос на регистрацию советника
    * @return зарегистрированный советник в виде {@link UserDTO}
    * @throws IllegalArgumentException если пользователь с указанным email уже существует
-   * @throws InternalException если не удалось отправить запрос на внешний сервис
+   * @throws InternalException        если не удалось отправить запрос на внешний сервис
    */
   @Override
   public UserDTO registerAsAdvisor(AdviserDTO adviser) {
-    Optional<User> checkUser = userRepository.findByEmail(adviser.email());
-    if (checkUser.isPresent()) {
-      throw new IllegalArgumentException("User with this email already exists.");
-    }
-
-    User newUser = new User();
-    newUser.setName(adviser.name());
-    newUser.setEmail(adviser.email());
-    newUser.setPassword(passwordEncoder.encode(adviser.password()));
-
-    Permissions defaultPermission = permissionsRepository.findByRole("ROLE_ADVISOR");
-    if (defaultPermission == null) {
-      defaultPermission = new Permissions();
-      defaultPermission.setRole("ROLE_ADVISOR");
-      defaultPermission = permissionsRepository.save(defaultPermission);
-    }
-    newUser.setPermissionList(Collections.singletonList(defaultPermission));
+    checkIfUserExists(adviser.email());
+    User newUser = createUser(adviser.email(), adviser.name(), adviser.password(), "ROLE_ADVISOR");
 
     try {
-      AdviserDTO response = webClientBuilder.build()
-              .post()
-              .uri("/financial-advisors")
-              .bodyValue(adviser)
-              .retrieve()
-              .bodyToMono(AdviserDTO.class)
-              .block();
-
-      if (response == null) {
-        throw new WebClientResponseException("Failed to get advisory sessions", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "", null, null, null);
-      }
+      sendAdviserToExternalService(adviser);
     } catch (WebClientResponseException e) {
       throw new InternalException("Failed to get advisory sessions");
     }
@@ -162,4 +116,43 @@ public class UserServiceImpl implements UserService {
     }
     return null;
   }
+
+  private void checkIfUserExists(String email) {
+    userRepository.findByEmail(email)
+            .ifPresent(user -> {
+              throw new IllegalArgumentException("User with this email already exists.");
+            });
+  }
+
+  private User createUser(String email, String name, String password, String role) {
+    User newUser = new User();
+    newUser.setName(name);
+    newUser.setEmail(email);
+    newUser.setPassword(passwordEncoder.encode(password));
+
+    Permissions permission = permissionsRepository.findByRole(role);
+    if (permission == null) {
+      permission = new Permissions();
+      permission.setRole(role);
+      permission = permissionsRepository.save(permission);
+    }
+    newUser.setPermissionList(Collections.singletonList(permission));
+    return newUser;
+  }
+
+  private void sendAdviserToExternalService(AdviserDTO adviser) {
+    AdviserDTO response = webClientBuilder.build()
+            .post()
+            .uri(FINANCIAL_ADVISOR_URI)
+            .bodyValue(adviser)
+            .retrieve()
+            .bodyToMono(AdviserDTO.class)
+            .block();
+
+    if (response == null) {
+      throw new WebClientResponseException("Failed to get advisory sessions", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+              "", null, null, null);
+    }
+  }
 }
+

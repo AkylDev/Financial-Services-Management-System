@@ -47,18 +47,6 @@ public class InvestmentServiceController {
     return new ResponseEntity<>(investmentResponses, HttpStatus.OK);
   }
 
-  @Operation(summary = "Update an investment")
-  @ApiResponses(value = {
-          @ApiResponse(responseCode = "204", description = "Investment updated successfully", content = @Content),
-          @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content)
-  })
-  @PutMapping("/update-investment/{id}")
-  public ResponseEntity<Void> updateInvest(@PathVariable("id") Long id,
-                                           @RequestBody InvestmentRequest request) {
-    investmentAdvisoryService.updateInvestment(id, request);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-  }
-
   @Operation(summary = "Delete an investment")
   @ApiResponses(value = {
           @ApiResponse(responseCode = "204", description = "Investment deleted successfully", content = @Content),

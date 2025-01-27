@@ -193,7 +193,7 @@ public class AccountServiceImplTest {
 
     accountService.deleteAccount(accountId);
 
-    Mockito.verify(accountRepository, Mockito.times(1)).deleteById(accountId);
+    Mockito.verify(accountRepository, Mockito.times(1)).delete(existingAccount);
   }
 
   @Test(expected = UserAccountNotFoundException.class)
