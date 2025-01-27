@@ -54,96 +54,102 @@ public class InvestmentServiceImplTest {
   }
 
   @Test
-  void testCreateInvestment_Success() throws IOException, InterruptedException {
-    MockWebServer mockWebServer = new MockWebServer();
-    mockWebServer.start();
+  void testCreateInvestment_Success() throws InterruptedException {
+    try (MockWebServer mockWebServer = new MockWebServer()) {
+      mockWebServer.start();
 
-    WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
-    investmentService = new InvestmentServiceImpl(investmentRepository, webClientBuilder, customerRequestService);
+      WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+      investmentService = new InvestmentServiceImpl(investmentRepository, webClientBuilder, customerRequestService);
 
-    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
-            true,
-            1000.0
-    );
-    mockWebServer.enqueue(new MockResponse()
-            .setResponseCode(200)
-            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .setBody(new ObjectMapper().writeValueAsString(balanceCheckResponse))
-    );
+      BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
+              true,
+              1000.0
+      );
+      mockWebServer.enqueue(new MockResponse()
+              .setResponseCode(200)
+              .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+              .setBody(new ObjectMapper().writeValueAsString(balanceCheckResponse))
+      );
 
-    InvestmentDTO request = new InvestmentDTO(
-            1L,
-            1L,
-            1L,
-            InvestmentType.STOCKS,
-            500.0,
-            new Date()
-    );
+      InvestmentDTO request = new InvestmentDTO(
+              1L,
+              1L,
+              1L,
+              InvestmentType.STOCKS,
+              500.0,
+              new Date()
+      );
 
-    Investment investment = InvestmentsMapper.toEntity(request);
-    investment.setId(1L);
+      Investment investment = InvestmentsMapper.toEntity(request);
+      investment.setId(1L);
 
-    when(investmentRepository.save(any(Investment.class))).thenReturn(investment);
+      when(investmentRepository.save(any(Investment.class))).thenReturn(investment);
 
-    CustomerServiceRequest serviceRequest = new CustomerServiceRequest();
-    serviceRequest.setUserId(request.userId());
-    serviceRequest.setRequestType(RequestType.INVESTMENT);
-    serviceRequest.setDescription("Customer invested " + request.amount()
-            + "$ to " + request.investmentType());
-    when(customerRequestService.createRequest(any(CustomerServiceRequest.class))).thenReturn(serviceRequest);
+      CustomerServiceRequest serviceRequest = new CustomerServiceRequest();
+      serviceRequest.setUserId(request.userId());
+      serviceRequest.setRequestType(RequestType.INVESTMENT);
+      serviceRequest.setDescription("Customer invested " + request.amount()
+              + "$ to " + request.investmentType());
+      when(customerRequestService.createRequest(any(CustomerServiceRequest.class))).thenReturn(serviceRequest);
 
-    InvestmentDTO result = investmentService.createInvestment(request);
+      InvestmentDTO result = investmentService.createInvestment(request);
 
-    assertNotNull(result);
-    assertEquals(investment.getId(), result.id());
-    assertEquals(investment.getUserId(), result.userId());
-    assertEquals(investment.getInvestmentType(), result.investmentType());
-    assertEquals(investment.getAmount(), result.amount());
+      assertNotNull(result);
+      assertEquals(investment.getId(), result.id());
+      assertEquals(investment.getUserId(), result.userId());
+      assertEquals(investment.getInvestmentType(), result.investmentType());
+      assertEquals(investment.getAmount(), result.amount());
 
-    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
-    assertNotNull(recordedRequest);
-    assertEquals("/api/v1/ams/check-balance", recordedRequest.getPath());
+      RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+      assertNotNull(recordedRequest);
+      assertEquals("/api/v1/ams/check-balance", recordedRequest.getPath());
 
-    mockWebServer.shutdown();
+      mockWebServer.shutdown();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Test
-  void testCreateInvestment_InsufficientFunds() throws IOException, InterruptedException {
-    MockWebServer mockWebServer = new MockWebServer();
-    mockWebServer.start();
+  void testCreateInvestment_InsufficientFunds() throws InterruptedException {
+    try (MockWebServer mockWebServer = new MockWebServer()) {
+      mockWebServer.start();
 
-    WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
-    investmentService = new InvestmentServiceImpl(investmentRepository, webClientBuilder, customerRequestService);
+      WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(mockWebServer.url("/").toString());
+      investmentService = new InvestmentServiceImpl(investmentRepository, webClientBuilder, customerRequestService);
 
-    BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
-            false,
-            null
-    );
-
-
-    mockWebServer.enqueue(new MockResponse()
-            .setResponseCode(200)
-            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .setBody(new ObjectMapper().writeValueAsString(balanceCheckResponse))
-    );
+      BalanceCheckResponse balanceCheckResponse = new BalanceCheckResponse(
+              false,
+              null
+      );
 
 
-    InvestmentDTO request = new InvestmentDTO(
-            1L,
-            1L,
-            1L,
-            InvestmentType.STOCKS,
-            1500.0,
-            new Date()
-    );
+      mockWebServer.enqueue(new MockResponse()
+              .setResponseCode(200)
+              .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+              .setBody(new ObjectMapper().writeValueAsString(balanceCheckResponse))
+      );
 
-    assertThrows(NotSufficientFundsException.class, () -> investmentService.createInvestment(request));
 
-    RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
-    assertNotNull(recordedRequest);
-    assertEquals("/api/v1/ams/check-balance", recordedRequest.getPath());
+      InvestmentDTO request = new InvestmentDTO(
+              1L,
+              1L,
+              1L,
+              InvestmentType.STOCKS,
+              1500.0,
+              new Date()
+      );
 
-    mockWebServer.shutdown();
+      assertThrows(NotSufficientFundsException.class, () -> investmentService.createInvestment(request));
+
+      RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+      assertNotNull(recordedRequest);
+      assertEquals("/api/v1/ams/check-balance", recordedRequest.getPath());
+
+      mockWebServer.shutdown();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Test
