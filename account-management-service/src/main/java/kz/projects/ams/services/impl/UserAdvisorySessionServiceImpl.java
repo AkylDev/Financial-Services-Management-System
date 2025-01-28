@@ -166,7 +166,7 @@ public class UserAdvisorySessionServiceImpl implements UserAdvisorySessionServic
   private void publishEvent(String message) {
     NotificationEvent event = new NotificationEvent(
             userService.getCurrentSessionUser().getId().toString(),
-            userService.getCurrentSessionUser().getUsername(),
+            userService.getCurrentSessionUser().getName(),
             userService.getCurrentSessionUser().getEmail(),
             message,
             LocalDateTime.now().toString()
