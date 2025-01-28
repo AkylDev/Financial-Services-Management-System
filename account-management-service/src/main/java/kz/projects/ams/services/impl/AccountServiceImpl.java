@@ -139,7 +139,7 @@ public class AccountServiceImpl implements AccountService {
 
     NotificationEvent event = new NotificationEvent(
             userService.getCurrentSessionUser().getId().toString(),
-            userService.getCurrentSessionUser().getUsername(),
+            userService.getCurrentSessionUser().getName(),
             userService.getCurrentSessionUser().getEmail(),
             message,
             LocalDateTime.now().toString()

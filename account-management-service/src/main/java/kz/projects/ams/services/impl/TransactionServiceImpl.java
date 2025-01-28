@@ -174,7 +174,7 @@ public class TransactionServiceImpl implements TransactionService {
   private void publishEvent(Account account, double amount, String operation) {
     NotificationEvent event = new NotificationEvent(
             userService.getCurrentSessionUser().getId().toString(),
-            userService.getCurrentSessionUser().getUsername(),
+            userService.getCurrentSessionUser().getName(),
             userService.getCurrentSessionUser().getEmail(),
             "Operation went successfully! " + "\n" +
                     "Operation: " + operation + "\n" +
