@@ -6,8 +6,8 @@ spring:
     bootstrap-servers: localhost:29092
 
   mail:
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:default@example.com}
+    password: ${MAIL_PASSWORD:default}
     host: smtp.gmail.com
     port: 587
     properties:
